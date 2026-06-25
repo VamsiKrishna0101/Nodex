@@ -4,7 +4,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://github.com/VamsiKrishna0101/nodex/actions/workflows/test.yml/badge.svg)](https://github.com/VamsiKrishna0101/nodex/actions)
+[![Tests](https://github.com/VamsiKrishna0101/Nodex/actions/workflows/test.yml/badge.svg)](https://github.com/VamsiKrishna0101/Nodex/actions)
 
 Nodex is a thin layer on top of LangGraph that lets you build agents with
 decorators, middleware, retries, fallbacks, tracing, and a small CLI.
@@ -28,7 +28,7 @@ Nodex gives that workflow a smaller surface:
 ## Install
 
 ```bash
-pip install nodex
+pip install nodex-ai
 ```
 
 Requires Python 3.11 or newer.

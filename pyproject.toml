@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nodex"
+name = "nodex-ai"
 version = "0.1.0"
 description = "The Express.js-style developer experience for LangGraph agents."
 readme = "README.md"
@@ -59,11 +59,11 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/VamsiKrishna0101/nodex"
-Documentation = "https://github.com/VamsiKrishna0101/nodex/blob/main/docs/quickstart.md"
-Repository = "https://github.com/VamsiKrishna0101/nodex"
-"Bug Tracker" = "https://github.com/VamsiKrishna0101/nodex/issues"
-Changelog = "https://github.com/VamsiKrishna0101/nodex/releases"
+Homepage = "https://github.com/VamsiKrishna0101/Nodex"
+Documentation = "https://vamsikrishna0101.github.io/Nodex/"
+Repository = "https://github.com/VamsiKrishna0101/Nodex"
+"Bug Tracker" = "https://github.com/VamsiKrishna0101/Nodex/issues"
+Changelog = "https://github.com/VamsiKrishna0101/Nodex/releases"
 
 [project.scripts]
 nodex = "nodex.cli.main:app"

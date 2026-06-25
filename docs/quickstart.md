@@ -7,7 +7,7 @@ This guide gets you from an empty folder to a running Nodex agent.
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
-pip install nodex
+pip install nodex-ai
 ```
 
 On macOS or Linux:
@@ -15,7 +15,7 @@ On macOS or Linux:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install nodex
+pip install nodex-ai
 ```
 
 ## Create an agent
