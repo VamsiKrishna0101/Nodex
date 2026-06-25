@@ -26,6 +26,12 @@ Nodex gives that workflow a smaller surface:
 - Run the graph with `app.run(...)` and get an `ExecutionTrace` back.
 - Get a coloured terminal execution trace automatically — no setup needed.
 
+## Demo
+
+[Watch the Nodex demo video]
+
+https://github.com/user-attachments/assets/4cea47c7-7811-4407-ab22-bf92af7b4206
+
 ## Install
 
 ```bash
