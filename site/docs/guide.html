@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Learn Nodex core concepts: nodes, state, middleware, retries, routing, tracing, and human review." />
     <title>Guide - Nodex</title>
     <link rel="stylesheet" href="../styles.css" />
   </head>
@@ -33,6 +34,7 @@
       </aside>
 
       <div class="doc-content">
+        <!-- ── Core concepts overview ──────────────── -->
         <section class="doc-section">
           <p class="section-kicker">Guide</p>
           <h2>Core concepts</h2>
@@ -49,42 +51,234 @@
           </div>
         </section>
 
+        <!-- ── Nodes ──────────────────────────────── -->
         <section id="nodes" class="reference-section">
           <p class="section-kicker">Nodes</p>
           <h2>Write graph steps as Python functions</h2>
-          <p>Each node receives state and returns a non-empty dictionary of updates.</p>
-          <pre class="code-card"><code>@app.node(next="writer", retry=2)
+          <p>
+            Each node receives a <code>NodexState</code> object and must return a
+            non-empty dictionary of state updates. The <code>next</code> parameter
+            tells Nodex which node to run after this one.
+          </p>
+          <pre class="code-card"><code>from nodex import Agent
+
+app = Agent(name="my-agent")
+
+@app.node(next="writer", retry=2)
 def research(state):
-    return {"notes": "LangGraph without boilerplate"}</code></pre>
+    query = state.get("query", "LangGraph")
+    return {"notes": f"Research notes about {query}"}
+
+@app.node(next="end")
+def writer(state):
+    return {"final": state.get("notes", "").upper()}</code></pre>
+          <div class="note">
+            <strong>Rule</strong>
+            <span>Node functions must return a non-empty dictionary. Returning <code>{}</code> or <code>None</code> raises <code>NodexStateError</code>.</span>
+          </div>
         </section>
 
+        <!-- ── State ──────────────────────────────── -->
         <section id="state" class="reference-section">
           <p class="section-kicker">State</p>
           <h2>Pass data through the graph</h2>
-          <p>State exposes <code>get</code>, <code>set</code>, and <code>update</code> while protecting internal execution fields.</p>
+          <p>
+            Nodex wraps your initial data in a <code>NodexState</code> object.
+            It exposes <code>get</code>, <code>set</code>, and <code>update</code>
+            while keeping internal execution fields (<code>_trace</code>,
+            <code>_retry_count</code>, <code>_current_node</code>) hidden from your
+            node logic.
+          </p>
+          <div class="two-column">
+            <div>
+              <pre class="code-card"><code># Read a value (with optional default)
+query = state.get("query", "fallback")
+
+# Set a single value
+state.set("answer", "42")
+
+# Merge multiple values at once
+state.update({
+    "answer": "42",
+    "confidence": 0.9,
+})</code></pre>
+            </div>
+            <div>
+              <pre class="code-card muted"><code># Protected internal keys
+# — do NOT read or write these
+# directly from node functions:
+#
+#   state._current_node
+#   state._trace
+#   state._retry_count
+#
+# Nodex manages them automatically.</code></pre>
+            </div>
+          </div>
+          <p style="margin-top:16px;">
+            The return value of each node is automatically merged into state before
+            the next node runs. You do not need to call <code>state.update()</code>
+            yourself — just return a dictionary.
+          </p>
         </section>
 
+        <!-- ── Middleware ─────────────────────────── -->
+        <section id="middleware" class="reference-section">
+          <p class="section-kicker">Middleware</p>
+          <h2>Wrap every node with a shared chain</h2>
+          <p>
+            Middleware is the right place for logging, auth checks, metrics, and
+            shared policy. Each middleware receives the current state and a
+            <code>next_node</code> callable — call it to continue execution.
+          </p>
+          <pre class="code-card"><code>@app.middleware
+def logger(state, next_node):
+    print(f"[start] {state._current_node}")
+    result = next_node(state)
+    print(f"[done]  {state._current_node}")
+    return result</code></pre>
+          <p>
+            Multiple middleware functions run in registration order. See the
+            <a href="./middleware.html">Middleware guide</a> for advanced patterns
+            including auth, metrics, and chaining.
+          </p>
+        </section>
+
+        <!-- ── Retries ────────────────────────────── -->
         <section id="retries" class="reference-section">
           <p class="section-kicker">Retries</p>
           <h2>Keep retry behavior near the node</h2>
-          <p>Use `retry` for transient failures and `on_fail` for fallback nodes.</p>
+          <p>
+            Use <code>retry</code> for transient failures and <code>on_fail</code>
+            to name a fallback node. When retries are exhausted and no fallback is
+            set, Nodex raises <code>NodexNodeError</code>.
+          </p>
           <pre class="code-card"><code>@app.node(next="writer", retry=2, on_fail="fallback_research")
 def research(state):
     return {"notes": call_model(state.get("query"))}
 
 @app.node(next="writer")
 def fallback_research(state):
-    return {"notes": "fallback notes"}</code></pre>
+    return {"notes": "Could not reach model — using cached notes."}</code></pre>
+          <div class="note">
+            <strong>on_fail values</strong>
+            <span>Use <code>"raise"</code> (default) to propagate the error, <code>"skip"</code> to continue without running this node, or a node name to jump to a fallback.</span>
+          </div>
         </section>
 
+        <!-- ── Conditional routing ────────────────── -->
+        <section id="routing" class="reference-section">
+          <p class="section-kicker">Routing</p>
+          <h2>Branch the graph based on state</h2>
+          <p>
+            Use <code>@app.route</code> when the next step depends on the output
+            of the current node. The condition is evaluated after the node returns.
+          </p>
+          <pre class="code-card"><code>@app.node()
+@app.route(
+    condition=lambda state: state.get("confidence", 0) > 0.8,
+    if_true="publish",
+    if_false="review",
+)
+def writer(state):
+    return {"draft": "content here", "confidence": 0.92}
+
+@app.node(next="end")
+def publish(state):
+    return {"status": "published"}
+
+@app.node(next="end")
+def review(state):
+    return {"status": "needs_review"}</code></pre>
+        </section>
+
+        <!-- ── Tracing ────────────────────────────── -->
+        <section id="tracing" class="reference-section">
+          <p class="section-kicker">Tracing</p>
+          <h2>Read what ran after each execution</h2>
+          <p>
+            <code>app.run()</code> always prints a coloured terminal summary and
+            returns an <code>ExecutionTrace</code> object you can inspect
+            programmatically.
+          </p>
+          <pre class="code-card"><code>trace = app.run({"query": "AI trends"})
+
+print(trace.success)        # True
+print(trace.total_duration) # 0.48 (seconds)
+print(trace.total_tokens)   # 237
+print(trace.total_cost)     # 0.0005
+
+# Inspect per-node results
+for r in trace.results:
+    print(r.node_name, r.status, r.duration)</code></pre>
+          <p>
+            The <a href="./api.html#trace">API reference</a> lists all fields on
+            <code>ExecutionTrace</code> and <code>NodeResult</code>.
+          </p>
+        </section>
+
+        <!-- ── Human review ───────────────────────── -->
         <section id="human-review" class="reference-section">
           <p class="section-kicker">Human review</p>
           <h2>Pause before continuing</h2>
-          <p>Set `human_review=True` on a node to ask for terminal approval before the graph moves to the next node.</p>
+          <p>
+            Set <code>human_review=True</code> on a node to ask for terminal
+            approval before the graph moves to the next node. The agent will print
+            the current state and wait for <kbd>y</kbd> / <kbd>n</kbd>.
+          </p>
+          <pre class="code-card"><code>@app.node(next="publish", human_review=True)
+def review(state):
+    # Nodex will pause here and ask for approval in the terminal
+    return {"approved_content": state.get("draft")}</code></pre>
+          <div class="note">
+            <strong>Use case</strong>
+            <span>Human review is useful for agents that generate content or take actions with real-world consequences, where you want a human checkpoint before proceeding.</span>
+          </div>
         </section>
       </div>
 
-      <aside class="toc"><p class="toc-title">On this page</p><a href="./guide.html">Core concepts</a><a href="./guide.html#nodes">Nodes</a><a href="./guide.html#state">State</a><a href="./guide.html#retries">Retries</a><a href="./guide.html#human-review">Human review</a></aside>
+      <aside class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <a href="./guide.html">Core concepts</a>
+        <a href="./guide.html#nodes">Nodes</a>
+        <a href="./guide.html#state">State</a>
+        <a href="./guide.html#middleware">Middleware</a>
+        <a href="./guide.html#retries">Retries</a>
+        <a href="./guide.html#routing">Routing</a>
+        <a href="./guide.html#tracing">Tracing</a>
+        <a href="./guide.html#human-review">Human review</a>
+      </aside>
     </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand"><span class="brand-mark">nx</span><span>nodex</span></div>
+          <p class="footer-copy">The Express.js-style developer experience for LangGraph agents. MIT licensed.</p>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Docs</h4>
+          <a href="./getting-started.html">Getting started</a>
+          <a href="./guide.html">Guide</a>
+          <a href="./middleware.html">Middleware</a>
+          <a href="./migration.html">Migration</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Reference</h4>
+          <a href="./api.html">API reference</a>
+          <a href="./cli.html">CLI</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Project</h4>
+          <a href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CHANGELOG.md">Changelog</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CONTRIBUTING.md">Contributing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Released under the MIT License.</span>
+        <span>Built with LangGraph under the hood.</span>
+      </div>
+    </footer>
   </body>
 </html>

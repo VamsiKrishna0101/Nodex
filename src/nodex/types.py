@@ -42,7 +42,7 @@ class RetryConfig:
 @dataclass
 class FlowConfig:
     name: str = "agent"
-    timeout: float = 30.0
+    timeout: float | None = None
     max_retries: int = 3
     debug: bool = False
 

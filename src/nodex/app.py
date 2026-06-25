@@ -28,7 +28,7 @@ class Agent:
         next: str = "end",
         retry: int = 0,
         on_fail: str = "raise",
-        timeout: float = 30.0,
+        timeout: float | None = None,
         human_review: bool = False,
     ) -> Callable:
         def decorator(func: Callable) -> Callable:
@@ -58,7 +58,11 @@ class Agent:
     ) -> Callable:
         return _route(condition=condition, if_true=if_true, if_false=if_false)
 
-    def run(self, initial_state: dict[str, Any] | None = None) -> ExecutionTrace:
+    def run(
+        self,
+        initial_state: dict[str, Any] | None = None,
+        raise_errors: bool = True,
+    ) -> ExecutionTrace:
         if self._entry_node is None:
             raise NodexConfigError("No nodes registered. Use @app.node() to register nodes.")
 
@@ -86,7 +90,9 @@ class Agent:
         except Exception:
             trace = self.tracer.get_trace()
             self.display.print_trace(trace)
-            raise
+            if raise_errors:
+                raise
+            return trace
 
         trace = self.tracer.get_trace()
         self.display.print_trace(trace)

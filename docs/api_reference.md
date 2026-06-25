@@ -24,7 +24,7 @@ app = Agent(name="research-agent", debug=True)
     next: str = "end",
     retry: int = 0,
     on_fail: str = "raise",
-    timeout: float = 30.0,
+    timeout: float | None = None,
     human_review: bool = False,
 )
 ```
@@ -36,7 +36,7 @@ Parameters:
 - `next`: next node name, or `"end"` to finish.
 - `retry`: number of retry attempts before failure handling.
 - `on_fail`: `"raise"`, `"skip"`, or a fallback node name.
-- `timeout`: maximum node runtime in seconds.
+- `timeout`: optional maximum node runtime in seconds. Defaults to `None`, so provider/model errors are not masked by a Nodex timeout unless you opt in.
 - `human_review`: ask for terminal approval before continuing.
 
 Node functions must return a non-empty dictionary.

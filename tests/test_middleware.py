@@ -69,6 +69,33 @@ class TestMiddlewareEngine:
         with pytest.raises(NodexMiddlewareError):
             engine.execute(node, state)
 
+    def test_node_error_is_not_wrapped_as_middleware_error(self):
+        def logger(state, next_node):
+            return next_node(state)
+
+        def broken_node(state):
+            raise ValueError("provider model not found")
+
+        engine = MiddlewareEngine([logger])
+        state = NodexState()
+
+        with pytest.raises(ValueError, match="provider model not found"):
+            engine.execute(broken_node, state)
+
+    def test_middleware_error_after_next_is_wrapped(self):
+        def broken_after_next(state, next_node):
+            next_node(state)
+            raise ValueError("middleware post-processing broke")
+
+        def node(state):
+            return state
+
+        engine = MiddlewareEngine([broken_after_next])
+        state = NodexState()
+
+        with pytest.raises(NodexMiddlewareError, match="middleware post-processing broke"):
+            engine.execute(node, state)
+
     def test_add_middleware(self):
         engine = MiddlewareEngine([])
         assert not engine.has_middlewares()

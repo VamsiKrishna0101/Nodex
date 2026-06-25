@@ -3,31 +3,156 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Nodex CLI reference: nodex new, nodex dev, nodex run — flags, target format, and examples." />
     <title>CLI - Nodex</title>
     <link rel="stylesheet" href="../styles.css" />
   </head>
   <body>
-    <header class="topbar"><a class="brand" href="../index.html"><span class="brand-mark">nx</span><span>nodex</span></a><nav class="topnav"><a href="./getting-started.html">Getting started</a><a href="./guide.html">Guide</a><a class="active" href="./api.html">API</a><a href="./migration.html">Migration</a></nav><div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a></div></header>
+    <header class="topbar">
+      <a class="brand" href="../index.html"><span class="brand-mark">nx</span><span>nodex</span></a>
+      <nav class="topnav"><a href="./getting-started.html">Getting started</a><a href="./guide.html">Guide</a><a class="active" href="./api.html">API</a><a href="./migration.html">Migration</a></nav>
+      <div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a></div>
+    </header>
     <main class="docs-shell">
-      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Reference</p><a href="./api.html">API reference</a><a class="active" href="./cli.html">CLI</a></aside>
+      <aside class="sidebar">
+        <p class="sidebar-title">Documentation</p>
+        <p class="sidebar-group">Reference</p>
+        <a href="./api.html">API reference</a>
+        <a class="active" href="./cli.html">CLI</a>
+      </aside>
       <div class="doc-content">
+
+        <!-- ── Overview ── -->
         <section class="doc-section">
           <p class="section-kicker">CLI</p>
           <h2>CLI commands</h2>
-          <p>The CLI mirrors the simple Express flow: scaffold, develop, run.</p>
-          <table class="reference-table"><tbody><tr><th>nodex new my-agent</th><td>Create a starter agent project.</td></tr><tr><th>nodex dev agent:app</th><td>Run an agent in watch mode while editing.</td></tr><tr><th>nodex run agent:app</th><td>Run an agent once for production-style execution.</td></tr></tbody></table>
-          <div class="terminal compact"><div class="terminal-chrome"><span></span><span></span><span></span><p>cli</p></div><pre><code><span class="prompt">$</span> nodex new my-agent
+          <p>
+            The Nodex CLI mirrors the Express developer flow: scaffold a project,
+            develop it with a watch loop, then run it for one-shot execution.
+            Install it alongside the package — <code>pip install nodex-ai</code>
+            puts the <code>nodex</code> command on your PATH.
+          </p>
+          <table class="reference-table"><tbody>
+            <tr><th>nodex new &lt;name&gt;</th><td>Scaffold a starter agent project in a new directory.</td></tr>
+            <tr><th>nodex dev &lt;target&gt;</th><td>Run an agent in watch mode — restart on file save while editing.</td></tr>
+            <tr><th>nodex run &lt;target&gt;</th><td>Run an agent once for production-style execution.</td></tr>
+          </tbody></table>
+          <div class="terminal compact">
+            <div class="terminal-chrome"><span></span><span></span><span></span><p>cli</p></div>
+            <pre><code><span class="prompt">$</span> nodex new my-agent
 <span class="prompt">$</span> cd my-agent
-<span class="prompt">$</span> nodex dev agent:app</code></pre></div>
+<span class="prompt">$</span> nodex dev agent:app
+<span class="prompt">$</span> nodex run agent:app --input '{"query":"hello"}'</code></pre>
+          </div>
         </section>
+
+        <!-- ── nodex new ── -->
+        <section id="new" class="reference-section">
+          <p class="section-kicker">Scaffold</p>
+          <h2>nodex new</h2>
+          <p>Creates a starter project with an agent file, <code>.env.example</code>, and a <code>README</code>.</p>
+          <pre class="signature"><code>nodex new &lt;project-name&gt;</code></pre>
+          <table class="reference-table"><tbody>
+            <tr><th>&lt;project-name&gt;</th><td>Name of the directory to create. Use <code>.</code> to scaffold into the current directory.</td></tr>
+          </tbody></table>
+          <div class="terminal compact">
+            <div class="terminal-chrome"><span></span><span></span><span></span><p>scaffold</p></div>
+            <pre><code><span class="prompt">$</span> nodex new research-agent
+<span class="prompt">$</span> cd research-agent
+<span class="prompt">$</span> ls
+agent.py  .env.example  README.md</code></pre>
+          </div>
+        </section>
+
+        <!-- ── nodex dev ── -->
+        <section id="dev" class="reference-section">
+          <p class="section-kicker">Development</p>
+          <h2>nodex dev</h2>
+          <p>
+            Runs the agent in watch mode. The agent re-executes automatically when
+            source files change — useful while iterating on node logic.
+          </p>
+          <pre class="signature"><code>nodex dev &lt;module&gt;:&lt;instance&gt; [--input JSON]</code></pre>
+          <table class="reference-table"><tbody>
+            <tr><th>&lt;module&gt;:&lt;instance&gt;</th><td>Python module path and the <code>Agent</code> variable name, e.g. <code>agent:app</code>.</td></tr>
+            <tr><th>--input JSON</th><td>Initial state as a JSON string. Passed to <code>app.run()</code> on each reload.</td></tr>
+          </tbody></table>
+        </section>
+
+        <!-- ── nodex run ── -->
+        <section id="run" class="reference-section">
+          <p class="section-kicker">Production</p>
+          <h2>nodex run</h2>
+          <p>Executes the agent once. Prints the full execution trace and exits.</p>
+          <pre class="signature"><code>nodex run &lt;module&gt;:&lt;instance&gt; [--input JSON] [--debug]</code></pre>
+          <table class="reference-table"><tbody>
+            <tr><th>&lt;module&gt;:&lt;instance&gt;</th><td>Python module path and the <code>Agent</code> variable name.</td></tr>
+            <tr><th>--input JSON</th><td>Initial state as a valid JSON string.</td></tr>
+            <tr><th>--debug</th><td>Enable debug mode on the agent, printing richer failure details.</td></tr>
+          </tbody></table>
+          <pre class="code-card"><code>nodex run agent:app --input '{"query":"AI trends"}' --debug</code></pre>
+        </section>
+
+        <!-- ── Target format ── -->
         <section id="input" class="reference-section">
           <p class="section-kicker">Input</p>
           <h2>Pass initial state as JSON</h2>
-          <pre class="code-card"><code>nodex run agent:app --input '{"query":"hello"}'</code></pre>
-          <p>The target format is `module:instance`, such as `agent:app`.</p>
+          <p>
+            The <code>--input</code> flag accepts a valid JSON object. It is
+            parsed and passed as the initial state dictionary to <code>app.run()</code>.
+          </p>
+          <pre class="code-card"><code>nodex run agent:app --input '{"query":"hello","debug":true}'</code></pre>
+          <p>
+            The target format is <code>module:instance</code>, such as
+            <code>agent:app</code>. The module is imported relative to the current
+            working directory.
+          </p>
+          <div class="note">
+            <strong>Windows users</strong>
+            <span>Use double quotes for the JSON string on Windows CMD, or single quotes in PowerShell: <code>nodex run agent:app --input '{\"query\":\"hello\"}'</code></span>
+          </div>
         </section>
+
       </div>
-      <aside class="toc"><p class="toc-title">On this page</p><a href="./cli.html">CLI commands</a><a href="./cli.html#input">Input</a></aside>
+      <aside class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <a href="./cli.html">CLI commands</a>
+        <a href="./cli.html#new">nodex new</a>
+        <a href="./cli.html#dev">nodex dev</a>
+        <a href="./cli.html#run">nodex run</a>
+        <a href="./cli.html#input">Input format</a>
+      </aside>
     </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand"><span class="brand-mark">nx</span><span>nodex</span></div>
+          <p class="footer-copy">The Express.js-style developer experience for LangGraph agents. MIT licensed.</p>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Docs</h4>
+          <a href="./getting-started.html">Getting started</a>
+          <a href="./guide.html">Guide</a>
+          <a href="./middleware.html">Middleware</a>
+          <a href="./migration.html">Migration</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Reference</h4>
+          <a href="./api.html">API reference</a>
+          <a href="./cli.html">CLI</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Project</h4>
+          <a href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CHANGELOG.md">Changelog</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CONTRIBUTING.md">Contributing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Released under the MIT License.</span>
+        <span>Built with LangGraph under the hood.</span>
+      </div>
+    </footer>
   </body>
 </html>

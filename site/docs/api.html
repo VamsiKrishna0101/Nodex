@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Complete Nodex API reference: Agent, app.node(), app.route(), app.middleware, NodexState, ExecutionTrace, NodeResult, testing helpers, and exceptions." />
     <title>API reference - Nodex</title>
     <link rel="stylesheet" href="../styles.css" />
   </head>
@@ -13,57 +14,250 @@
       <div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a></div>
     </header>
     <main class="docs-shell">
-      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Reference</p><a class="active" href="./api.html">API reference</a><a href="./api.html#agent">Agent</a><a href="./api.html#node">app.node()</a><a href="./middleware.html">app.middleware</a><a href="./api.html#route">app.route()</a><a href="./api.html#state">NodexState</a><a href="./cli.html">CLI</a></aside>
+      <aside class="sidebar">
+        <p class="sidebar-title">Documentation</p>
+        <p class="sidebar-group">Reference</p>
+        <a class="active" href="./api.html">API reference</a>
+        <a href="./api.html#agent">Agent</a>
+        <a href="./api.html#node">app.node()</a>
+        <a href="./middleware.html">app.middleware</a>
+        <a href="./api.html#route">app.route()</a>
+        <a href="./api.html#state">NodexState</a>
+        <a href="./api.html#trace">ExecutionTrace</a>
+        <a href="./api.html#noderesult">NodeResult</a>
+        <a href="./api.html#testing">Testing</a>
+        <a href="./api.html#exceptions">Exceptions</a>
+        <a href="./cli.html">CLI</a>
+      </aside>
       <div class="doc-content">
+
+        <!-- ── Overview ── -->
         <section class="doc-section">
           <p class="section-kicker">API</p>
           <h2>API reference</h2>
           <p>The reference is organized around the objects developers import and call directly.</p>
-          <div class="api-list"><a href="#agent">Agent</a><a href="#node">app.node()</a><a href="./middleware.html">app.middleware</a><a href="#route">app.route()</a><a href="#state">NodexState</a><a href="#testing">Testing utilities</a><a href="./cli.html">CLI commands</a></div>
+          <div class="api-list">
+            <a href="#agent">Agent</a>
+            <a href="#node">app.node()</a>
+            <a href="./middleware.html">app.middleware</a>
+            <a href="#route">app.route()</a>
+            <a href="#state">NodexState</a>
+            <a href="#trace">ExecutionTrace</a>
+            <a href="#noderesult">NodeResult</a>
+            <a href="#testing">Testing utilities</a>
+            <a href="#exceptions">Exceptions</a>
+            <a href="./cli.html">CLI commands</a>
+          </div>
         </section>
+
+        <!-- ── Agent ── -->
         <section id="agent" class="reference-section">
           <div class="reference-heading"><p class="section-kicker">Class</p><h2>Agent</h2></div>
           <p>The main entry point for a Nodex graph. Create one agent, register nodes with decorators, then call <code>run()</code>.</p>
           <pre class="signature"><code>Agent(name: str = "agent", debug: bool = False)</code></pre>
-          <table class="reference-table"><tbody><tr><th>name</th><td>Name shown in terminal output and execution traces.</td></tr><tr><th>debug</th><td>Prints richer failure details when available.</td></tr></tbody></table>
+          <table class="reference-table"><tbody>
+            <tr><th>name</th><td>Name shown in terminal output and execution traces.</td></tr>
+            <tr><th>debug</th><td>Prints richer failure details when available.</td></tr>
+          </tbody></table>
+          <pre class="code-card"><code>from nodex import Agent
+
+app = Agent(name="research-agent", debug=True)
+
+trace = app.run({"query": "AI trends"})</code></pre>
         </section>
+
+        <!-- ── app.node() ── -->
         <section id="node" class="reference-section">
           <div class="reference-heading"><p class="section-kicker">Decorator</p><h2>app.node()</h2></div>
           <p>Registers a Python function as a graph node. The function receives state and must return a non-empty dictionary.</p>
-          <pre class="signature"><code>@app.node(next="end", retry=0, on_fail="raise", timeout=30.0, human_review=False)</code></pre>
-          <table class="reference-table"><tbody><tr><th>next</th><td>Next node name, or <code>"end"</code> to finish.</td></tr><tr><th>retry</th><td>Number of retry attempts before failure handling.</td></tr><tr><th>on_fail</th><td>Failure behavior. Use <code>"raise"</code> or a fallback node name.</td></tr><tr><th>timeout</th><td>Maximum seconds allowed for the node function.</td></tr><tr><th>human_review</th><td>Prompts for terminal approval before continuing.</td></tr></tbody></table>
+          <pre class="signature"><code>@app.node(next="end", retry=0, on_fail="raise", timeout=None, human_review=False)</code></pre>
+          <table class="reference-table"><tbody>
+            <tr><th>next</th><td>Next node name, or <code>"end"</code> to finish the graph.</td></tr>
+            <tr><th>retry</th><td>Number of retry attempts before failure handling kicks in.</td></tr>
+            <tr><th>on_fail</th><td>Failure behavior: <code>"raise"</code> (default), <code>"skip"</code>, or a fallback node name.</td></tr>
+            <tr><th>timeout</th><td>Maximum seconds allowed for the node function. Raises <code>NodexTimeoutError</code> when exceeded.</td></tr>
+            <tr><th>human_review</th><td>If <code>True</code>, Nodex prompts for terminal approval before continuing to the next node.</td></tr>
+          </tbody></table>
+          <pre class="code-card"><code>@app.node(next="writer", retry=2, on_fail="fallback", timeout=10.0)
+def research(state):
+    return {"notes": call_model(state.get("query"))}</code></pre>
         </section>
+
+        <!-- ── app.middleware ── -->
+        <section id="middleware" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Decorator</p><h2>app.middleware</h2></div>
+          <p>
+            Registers a middleware function that wraps every node call. Middleware receives
+            the current <code>NodexState</code> and a <code>next_node</code> callable. Call
+            <code>next_node(state)</code> to continue execution.
+          </p>
+          <pre class="signature"><code>@app.middleware
+def my_middleware(state, next_node): ...</code></pre>
+          <p>See the <a href="./middleware.html">Middleware guide</a> for full examples.</p>
+        </section>
+
+        <!-- ── app.route() ── -->
         <section id="route" class="reference-section">
           <div class="reference-heading"><p class="section-kicker">Decorator</p><h2>app.route()</h2></div>
           <p>Adds conditional routing to a node. Use it when the next step depends on state produced by earlier nodes.</p>
           <pre class="signature"><code>@app.route(condition, if_true="publish", if_false="review")</code></pre>
+          <table class="reference-table"><tbody>
+            <tr><th>condition</th><td>A callable that receives <code>NodexState</code> and returns <code>bool</code>.</td></tr>
+            <tr><th>if_true</th><td>Node name to route to when the condition is truthy.</td></tr>
+            <tr><th>if_false</th><td>Node name to route to when the condition is falsy.</td></tr>
+          </tbody></table>
+          <pre class="code-card"><code>@app.node()
+@app.route(
+    condition=lambda state: state.get("confidence", 0) > 0.8,
+    if_true="publish",
+    if_false="review",
+)
+def writer(state):
+    return {"draft": "content", "confidence": 0.92}</code></pre>
         </section>
+
+        <!-- ── NodexState ── -->
         <section id="state" class="reference-section">
           <div class="reference-heading"><p class="section-kicker">State</p><h2>NodexState</h2></div>
           <p>A small wrapper around user data. It keeps internal execution fields separate from the dictionary your nodes read and update.</p>
-          <table class="reference-table"><tbody><tr><th>get(key, default)</th><td>Read a value from the current state.</td></tr><tr><th>set(key, value)</th><td>Set one state value.</td></tr><tr><th>update(dict)</th><td>Merge multiple values without overwriting internal fields.</td></tr></tbody></table>
+          <table class="reference-table"><tbody>
+            <tr><th>get(key, default)</th><td>Read a value from the current state. Returns <code>default</code> if the key is missing.</td></tr>
+            <tr><th>set(key, value)</th><td>Set one state value.</td></tr>
+            <tr><th>update(dict)</th><td>Merge multiple values without overwriting internal fields.</td></tr>
+          </tbody></table>
+          <div class="note">
+            <strong>Protected keys</strong>
+            <span>Do not read or write <code>_current_node</code>, <code>_trace</code>, or <code>_retry_count</code> from node code. Nodex manages these internally.</span>
+          </div>
         </section>
+
+        <!-- ── ExecutionTrace ── -->
+        <section id="trace" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Return value</p><h2>ExecutionTrace</h2></div>
+          <p>Returned by <code>app.run()</code>. Captures the full result of one graph execution.</p>
+          <table class="reference-table"><tbody>
+            <tr><th>agent_name</th><td>The name passed to <code>Agent(name=...)</code>.</td></tr>
+            <tr><th>results</th><td>List of <a href="#noderesult"><code>NodeResult</code></a> objects, one per executed node.</td></tr>
+            <tr><th>total_duration</th><td>Wall-clock seconds for the full graph run.</td></tr>
+            <tr><th>total_cost</th><td>Summed cost in USD across all nodes.</td></tr>
+            <tr><th>total_tokens</th><td>Summed token count across all nodes.</td></tr>
+            <tr><th>success</th><td><code>True</code> if all nodes completed without a fatal error.</td></tr>
+          </tbody></table>
+          <pre class="code-card"><code>trace = app.run({"query": "AI trends"})
+
+if trace.success:
+    print(f"Done in {trace.total_duration:.2f}s, {trace.total_tokens} tokens")
+else:
+    for r in trace.results:
+        if r.status != "ok":
+            print(f"Failed: {r.node_name} — {r.error}")</code></pre>
+        </section>
+
+        <!-- ── NodeResult ── -->
+        <section id="noderesult" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Result</p><h2>NodeResult</h2></div>
+          <p>One result per executed node, available as <code>trace.results</code>.</p>
+          <table class="reference-table"><tbody>
+            <tr><th>node_name</th><td>The name of the node function.</td></tr>
+            <tr><th>status</th><td><code>"ok"</code>, <code>"retry"</code>, <code>"failed"</code>, or <code>"skipped"</code>.</td></tr>
+            <tr><th>output</th><td>The dictionary returned by the node function.</td></tr>
+            <tr><th>duration</th><td>Wall-clock seconds for this node.</td></tr>
+            <tr><th>error</th><td>Exception string if the node failed, otherwise <code>None</code>.</td></tr>
+            <tr><th>retries</th><td>Number of retry attempts made.</td></tr>
+            <tr><th>tokens</th><td>Token usage reported by the node (0 if not set).</td></tr>
+            <tr><th>cost</th><td>Cost in USD reported by the node (0.0 if not set).</td></tr>
+          </tbody></table>
+        </section>
+
+        <!-- ── Testing ── -->
         <section id="testing" class="reference-section">
           <div class="reference-heading"><p class="section-kicker">Testing</p><h2>Testing utilities</h2></div>
-          <pre class="code-card"><code>from nodex.testing import test_node
+          <p>
+            Import from <code>nodex.testing</code> to test individual nodes in
+            isolation without running the full graph.
+          </p>
+          <pre class="code-card"><code>from nodex.testing import assert_node_output, make_state, test_node
 
+# Run a node and inspect the result
 result = test_node(research, {"query": "AI trends"})
-assert result.success</code></pre>
+assert result.success
+assert "notes" in result.output
+
+# Assert specific keys are present in the output
+assert_node_output(research, {"query": "AI trends"}, ["notes"])
+
+# Build a NodexState manually for more control
+state = make_state({"query": "test", "confidence": 0.9})
+result = test_node(writer, state)</code></pre>
+          <table class="reference-table"><tbody>
+            <tr><th>test_node(fn, input)</th><td>Runs a single node function with the given input dict or <code>NodexState</code>. Returns a <code>NodeResult</code>.</td></tr>
+            <tr><th>assert_node_output(fn, input, keys)</th><td>Asserts that all <code>keys</code> are present in the node output. Raises <code>AssertionError</code> on failure.</td></tr>
+            <tr><th>make_state(dict)</th><td>Creates a <code>NodexState</code> from a plain dictionary, useful when you need direct state control in tests.</td></tr>
+          </tbody></table>
         </section>
+
+        <!-- ── Exceptions ── -->
         <section id="exceptions" class="reference-section">
           <div class="reference-heading"><p class="section-kicker">Errors</p><h2>Exceptions</h2></div>
+          <p>All Nodex exceptions inherit from <code>NodexError</code>.</p>
           <table class="reference-table">
             <tbody>
-              <tr><th>NodexNodeError</th><td>Raised when a node fails after retry and failure handling.</td></tr>
-              <tr><th>NodexStateError</th><td>Raised when a node returns invalid state output.</td></tr>
-              <tr><th>NodexMiddlewareError</th><td>Raised when middleware fails.</td></tr>
-              <tr><th>NodexConfigError</th><td>Raised for invalid app or graph configuration.</td></tr>
-              <tr><th>NodexTimeoutError</th><td>Raised when a node exceeds its timeout.</td></tr>
+              <tr><th>NodexError</th><td>Base class for all Nodex exceptions. Safe to catch as a catch-all.</td></tr>
+              <tr><th>NodexNodeError</th><td>Raised when a node fails after exhausting retries and failure handling.</td></tr>
+              <tr><th>NodexStateError</th><td>Raised when a node returns invalid state output (empty or non-dict).</td></tr>
+              <tr><th>NodexMiddlewareError</th><td>Raised when middleware raises. Includes the middleware function name.</td></tr>
+              <tr><th>NodexRouteError</th><td>Raised when a route condition raises or returns a non-boolean value.</td></tr>
+              <tr><th>NodexConfigError</th><td>Raised for invalid agent or graph configuration, such as a missing node reference.</td></tr>
+              <tr><th>NodexAuthError</th><td>Raised by auth middleware when a request is rejected. Extend this for custom auth logic.</td></tr>
+              <tr><th>NodexTimeoutError</th><td>Raised when a node exceeds its <code>timeout</code> value.</td></tr>
             </tbody>
           </table>
         </section>
       </div>
-      <aside class="toc"><p class="toc-title">On this page</p><a href="#agent">Agent</a><a href="#node">app.node()</a><a href="#route">app.route()</a><a href="#state">NodexState</a><a href="#testing">Testing</a><a href="#exceptions">Exceptions</a></aside>
+
+      <aside class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <a href="#agent">Agent</a>
+        <a href="#node">app.node()</a>
+        <a href="#middleware">app.middleware</a>
+        <a href="#route">app.route()</a>
+        <a href="#state">NodexState</a>
+        <a href="#trace">ExecutionTrace</a>
+        <a href="#noderesult">NodeResult</a>
+        <a href="#testing">Testing</a>
+        <a href="#exceptions">Exceptions</a>
+      </aside>
     </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand"><span class="brand-mark">nx</span><span>nodex</span></div>
+          <p class="footer-copy">The Express.js-style developer experience for LangGraph agents. MIT licensed.</p>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Docs</h4>
+          <a href="./getting-started.html">Getting started</a>
+          <a href="./guide.html">Guide</a>
+          <a href="./middleware.html">Middleware</a>
+          <a href="./migration.html">Migration</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Reference</h4>
+          <a href="./api.html">API reference</a>
+          <a href="./cli.html">CLI</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Project</h4>
+          <a href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CHANGELOG.md">Changelog</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CONTRIBUTING.md">Contributing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Released under the MIT License.</span>
+        <span>Built with LangGraph under the hood.</span>
+      </div>
+    </footer>
   </body>
 </html>

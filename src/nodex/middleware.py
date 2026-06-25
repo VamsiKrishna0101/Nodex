@@ -17,9 +17,21 @@ class MiddlewareEngine:
             next_in_chain = build_chain(index + 1)
 
             def chain(s: NodexState) -> NodexState:
+                downstream_failed = False
+
+                def guarded_next(next_state: NodexState) -> NodexState:
+                    nonlocal downstream_failed
+                    try:
+                        return next_in_chain(next_state)
+                    except Exception:
+                        downstream_failed = True
+                        raise
+
                 try:
-                    return current(s, next_in_chain)
+                    return current(s, guarded_next)
                 except Exception as e:
+                    if downstream_failed:
+                        raise
                     raise NodexMiddlewareError(
                         middleware_name=current.__name__,
                         reason=str(e),

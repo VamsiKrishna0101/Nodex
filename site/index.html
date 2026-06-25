@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Nodex is the Express.js-style developer experience for LangGraph agents."
+      content="Nodex is the Express.js-style developer experience for LangGraph agents. Decorator-first nodes, middleware, retries, tracing, and a CLI — without the boilerplate."
     />
     <title>Nodex - Express.js for LangGraph agents</title>
     <link rel="stylesheet" href="./styles.css" />
@@ -30,6 +30,7 @@
     </header>
 
     <main>
+      <!-- ── Hero ──────────────────────────────────────── -->
       <section class="hero">
         <div class="hero-inner">
           <div class="hero-copy">
@@ -63,15 +64,90 @@
 
 app = Agent(name="hello-agent")
 
-@app.node(next="end")
-def start(state):
-    return {"message": "hello from nodex"}
+@app.node(next="writer")
+def research(state):
+    return {"notes": f"Research: {state.get('query')}"}
 
-app.run()</code></pre>
+@app.node(next="end")
+def writer(state):
+    return {"final": state.get("notes").upper()}
+
+app.run({"query": "agent frameworks"})</code></pre>
           </div>
         </div>
       </section>
 
+      <!-- ── Why Nodex ─────────────────────────────────── -->
+      <section class="why-band">
+        <div class="why-inner">
+          <p class="section-kicker eyebrow">Why Nodex</p>
+          <h2>LangGraph power, Express simplicity</h2>
+          <p>
+            Nodex does not replace LangGraph. It removes the boilerplate around it
+            so you can focus on agent logic, not wiring.
+          </p>
+          <div class="why-grid">
+            <article class="why-card">
+              <div class="card-icon">@</div>
+              <h3>Decorator-first nodes</h3>
+              <p>Register graph steps with <code>@app.node</code>. Routing, retries, and timeouts live right on the decorator — no separate edge wiring.</p>
+            </article>
+            <article class="why-card">
+              <div class="card-icon">⛓</div>
+              <h3>One middleware chain</h3>
+              <p>Attach logging, auth checks, metrics, and shared policy once with <code>@app.middleware</code>. Middleware runs in registration order, wrapping every node.</p>
+            </article>
+            <article class="why-card">
+              <div class="card-icon">↺</div>
+              <h3>Node-level retries</h3>
+              <p>Set <code>retry=2</code> and <code>on_fail="fallback"</code> directly on the decorator. No extra exception handlers, no global policy files.</p>
+            </article>
+            <article class="why-card">
+              <div class="card-icon">↔</div>
+              <h3>Conditional routing</h3>
+              <p>Use <code>@app.route(condition, if_true, if_false)</code> to branch the graph on state without building a custom router function.</p>
+            </article>
+            <article class="why-card">
+              <div class="card-icon">▶</div>
+              <h3>Terminal execution trace</h3>
+              <p>Every run prints a coloured summary: node name, status, duration, token usage, and cost. No extra setup required.</p>
+            </article>
+            <article class="why-card">
+              <div class="card-icon">✓</div>
+              <h3>Built-in testing helpers</h3>
+              <p>Test individual nodes in isolation with <code>test_node()</code> and <code>assert_node_output()</code> — no mock graph needed.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Stats ─────────────────────────────────────── -->
+      <section class="stat-band">
+        <div class="stat-inner">
+          <div class="stat-item">
+            <span class="stat-num">58+</span>
+            <span class="stat-label">Tests passing</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">0</span>
+            <span class="stat-label">Vendor lock-in</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">Python 3.11+</span>
+            <span class="stat-label">Requirement</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">MIT</span>
+            <span class="stat-label">License</span>
+          </div>
+          <div class="stat-cta">
+            <a class="button primary" href="./docs/getting-started.html">Get started &rarr;</a>
+            <a class="button secondary" href="https://github.com/VamsiKrishna0101/Nodex">View on GitHub</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Quick links grid ──────────────────────────── -->
       <section class="home-band">
         <div class="home-grid">
           <a href="./docs/getting-started.html">
@@ -93,5 +169,44 @@ app.run()</code></pre>
         </div>
       </section>
     </main>
+
+    <!-- ── Footer ─────────────────────────────────────── -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand">
+            <span class="brand-mark">nx</span>
+            <span>nodex</span>
+          </div>
+          <p class="footer-copy">
+            The Express.js-style developer experience for LangGraph agents.
+            MIT licensed, no vendor lock-in.
+          </p>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Docs</h4>
+          <a href="./docs/getting-started.html">Getting started</a>
+          <a href="./docs/guide.html">Guide</a>
+          <a href="./docs/middleware.html">Middleware</a>
+          <a href="./docs/migration.html">Migration</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Reference</h4>
+          <a href="./docs/api.html">API reference</a>
+          <a href="./docs/cli.html">CLI</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Project</h4>
+          <a href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CHANGELOG.md">Changelog</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/LICENSE">License</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Released under the MIT License.</span>
+        <span>Built with LangGraph under the hood.</span>
+      </div>
+    </footer>
   </body>
 </html>

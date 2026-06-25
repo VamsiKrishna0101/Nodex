@@ -3,6 +3,7 @@
 **The Express.js-style developer experience for LangGraph agents.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/nodex-ai.svg)](https://pypi.org/project/nodex-ai/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests](https://github.com/VamsiKrishna0101/Nodex/actions/workflows/test.yml/badge.svg)](https://github.com/VamsiKrishna0101/Nodex/actions)
 
@@ -22,8 +23,8 @@ Nodex gives that workflow a smaller surface:
 - Define graph steps with `@app.node`.
 - Add cross-cutting behavior with `@app.middleware`.
 - Route conditionally with `@app.route`.
-- Run the graph with `app.run(...)`.
-- Get a terminal execution trace automatically.
+- Run the graph with `app.run(...)` and get an `ExecutionTrace` back.
+- Get a coloured terminal execution trace automatically — no setup needed.
 
 ## Install
 
@@ -53,7 +54,9 @@ def writer(state):
 
 
 if __name__ == "__main__":
-    app.run({"query": "agent frameworks"})
+    trace = app.run({"query": "agent frameworks"})
+    print(trace.success)        # True
+    print(trace.total_tokens)   # 0
 ```
 
 Output:
@@ -69,7 +72,7 @@ OK  Completed  |  0.023s  |  $0.0000  |  2 nodes  |  0 failed  |  tokens: 0
 
 ## LangGraph vs Nodex
 
-LangGraph:
+**LangGraph (before):**
 
 ```python
 from langgraph.graph import END, START, StateGraph
@@ -83,7 +86,7 @@ graph.add_edge("writer", END)
 app = graph.compile()
 ```
 
-Nodex:
+**Nodex (after):**
 
 ```python
 from nodex import Agent
@@ -115,18 +118,26 @@ app = Agent(name="research-agent", debug=True)
 ```
 
 `Agent` owns node registration, middleware registration, graph compilation, and
-execution tracing.
+execution tracing. `app.run()` returns an [`ExecutionTrace`](#executiontrace).
 
 ### Nodes
 
 ```python
-@app.node(next="writer", retry=2, on_fail="fallback_research")
+@app.node(next="writer", retry=2, on_fail="fallback_research", timeout=30.0)
 def research(state):
     return {"research_results": "data"}
 ```
 
 Node functions receive a `NodexState` object and must return a non-empty
 dictionary. Internal keys such as `_trace` and `_retry_count` are protected.
+
+| Parameter | Default | Description |
+|---|---|---|
+| `next` | `"end"` | Next node name, or `"end"` to finish. |
+| `retry` | `0` | Retry attempts before failure handling. |
+| `on_fail` | `"raise"` | `"raise"`, `"skip"`, or a fallback node name. |
+| `timeout` | `30.0` | Max seconds for the node. Raises `NodexTimeoutError`. |
+| `human_review` | `False` | Ask for terminal approval before continuing. |
 
 ### Middleware
 
@@ -137,7 +148,8 @@ def logger(state, next_node):
     return next_node(state)
 ```
 
-Middleware runs in registration order and wraps node execution.
+Middleware runs in registration order and wraps every node execution. Register
+multiple middleware functions to build a chain.
 
 ### Conditional routing
 
@@ -149,7 +161,7 @@ Middleware runs in registration order and wraps node execution.
     if_false="review",
 )
 def writer(state):
-    return {"draft": "ready"}
+    return {"draft": "ready", "confidence": 0.92}
 ```
 
 ### Human review
@@ -162,6 +174,22 @@ def review(state):
 
 When `human_review=True`, Nodex asks for terminal approval before continuing.
 
+### ExecutionTrace
+
+`app.run()` returns an `ExecutionTrace` you can inspect after the run:
+
+```python
+trace = app.run({"query": "AI trends"})
+
+print(trace.success)         # True
+print(trace.total_duration)  # 0.48
+print(trace.total_tokens)    # 237
+print(trace.total_cost)      # 0.0005
+
+for r in trace.results:
+    print(r.node_name, r.status, r.duration)
+```
+
 ## CLI
 
 ```bash
@@ -171,10 +199,18 @@ nodex dev agent:app
 nodex run agent:app --input '{"query":"hello"}'
 ```
 
+| Command | Description |
+|---|---|
+| `nodex new <name>` | Scaffold a starter agent project. |
+| `nodex dev <target>` | Run in watch mode — restarts on file save. |
+| `nodex run <target>` | One-shot execution with a full trace. |
+
+The target format is `module:instance`, e.g. `agent:app`.
+
 ## Testing nodes
 
 ```python
-from nodex.testing import assert_node_output, test_node
+from nodex.testing import assert_node_output, make_state, test_node
 
 
 def test_research():
@@ -185,6 +221,12 @@ def test_research():
 
 def test_required_keys():
     assert_node_output(research, {"query": "AI trends"}, ["research_results"])
+
+
+def test_with_custom_state():
+    state = make_state({"query": "AI trends", "confidence": 0.9})
+    result = test_node(writer, state)
+    assert result.success
 ```
 
 ## Local development
@@ -195,12 +237,15 @@ ruff check src tests
 pytest
 ```
 
-Current test suite: 58 tests, with app, graph, CLI, decorators, middleware,
-state, tracer, errors, and testing helpers covered.
+Current test suite: 58 tests, covering app, graph, CLI, decorators, middleware,
+state, tracer, errors, and testing helpers.
 
 ## Documentation
 
-The local docs site lives in `site/` and can be served with:
+The full docs site lives in `site/` and covers getting started, guides,
+API reference, middleware patterns, CLI usage, and migration from LangGraph.
+
+Serve it locally:
 
 ```bash
 npm run dev
@@ -208,17 +253,26 @@ npm run dev
 
 Then open `http://127.0.0.1:4173/`.
 
+| Page | Path |
+|---|---|
+| Getting started | `/docs/getting-started.html` |
+| Guide | `/docs/guide.html` |
+| API reference | `/docs/api.html` |
+| Middleware | `/docs/middleware.html` |
+| CLI | `/docs/cli.html` |
+| Migration from LangGraph | `/docs/migration.html` |
+
 ## Roadmap
 
-- Decorator-based node definition
-- Middleware engine
-- Retry and fallback handling
-- Terminal execution tracing
-- CLI scaffold/run/dev commands
-- Testing helpers
-- Multi-page docs site
-- Provider-specific examples
-- Dashboard or trace viewer
+- [x] Decorator-based node definition
+- [x] Middleware engine
+- [x] Retry and fallback handling
+- [x] Terminal execution tracing
+- [x] CLI scaffold/run/dev commands
+- [x] Testing helpers
+- [x] Multi-page docs site
+- [ ] Provider-specific examples
+- [ ] Dashboard or trace viewer
 
 ## License
 
