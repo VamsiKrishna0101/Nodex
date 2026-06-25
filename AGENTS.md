@@ -4,6 +4,9 @@ This file is for AI coding agents working on Nodex.
 
 ## Rules
 
+- Do not push directly to main for code changes. Open an issue, create a branch, open a pull request, wait for checks, then merge.
+- Do not create or push release tags unless the maintainer explicitly approves the release after the PR is merged.
+
 - Read the relevant source files before editing.
 - Keep `src/nodex` behavior aligned with `README.md`, `docs/`, and `site/`.
 - Use ASCII-safe terminal output unless there is a tested reason not to.
