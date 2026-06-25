@@ -8,11 +8,14 @@ It demonstrates nodes, middleware, routing, retries, fallback, trace, tokens,
 and state flow in one short script for a demo video.
 """
 
+import os
+
 from nodex import Agent
 
 app = Agent(name="nodex-feature-showcase", debug=True)
 
 attempts = {"risk_check": 0}
+DEMO_RISK_SCORE = float(os.getenv("NODEX_DEMO_RISK_SCORE", "0.35"))
 
 
 @app.middleware
@@ -51,12 +54,12 @@ def research(state):
             "summary": "Nodex reduces LangGraph boilerplate with decorators.",
             "plan_steps": len(plan),
         },
-        "risk_score": 0.35,
+        "risk_score": DEMO_RISK_SCORE,
         "_tokens": 88,
     }
 
 
-@app.node(next="draft", retry=1, on_fail="fallback_risk_check")
+@app.node(next="draft", retry=0, on_fail="fallback_risk_check")
 def risk_check(state):
     attempts["risk_check"] += 1
     if attempts["risk_check"] == 1:

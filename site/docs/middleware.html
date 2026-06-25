@@ -93,7 +93,7 @@ def second(state, next_node):
 try:
     trace = app.run({"query": "test"})
 except NodexMiddlewareError as exc:
-    print(exc)  # "Middleware 'auth_check' raised: Missing api_key"</code></pre>
+    print(exc)  # "Middleware 'auth_check' failed: Missing api_key"</code></pre>
         </section>
 
         <!-- ── Auth ── -->

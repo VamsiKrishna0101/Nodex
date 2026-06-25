@@ -50,17 +50,17 @@
         <section id="new" class="reference-section">
           <p class="section-kicker">Scaffold</p>
           <h2>nodex new</h2>
-          <p>Creates a starter project with an agent file, <code>.env.example</code>, and a <code>README</code>.</p>
+          <p>Creates a starter project with <code>agent.py</code>, <code>.env</code>, <code>requirements.txt</code>, and <code>.gitignore</code>.</p>
           <pre class="signature"><code>nodex new &lt;project-name&gt;</code></pre>
           <table class="reference-table"><tbody>
-            <tr><th>&lt;project-name&gt;</th><td>Name of the directory to create. Use <code>.</code> to scaffold into the current directory.</td></tr>
+            <tr><th>&lt;project-name&gt;</th><td>Name of the new directory to create for the project.</td></tr>
           </tbody></table>
           <div class="terminal compact">
             <div class="terminal-chrome"><span></span><span></span><span></span><p>scaffold</p></div>
             <pre><code><span class="prompt">$</span> nodex new research-agent
 <span class="prompt">$</span> cd research-agent
 <span class="prompt">$</span> ls
-agent.py  .env.example  README.md</code></pre>
+agent.py  .env  requirements.txt  .gitignore</code></pre>
           </div>
         </section>
 
@@ -84,13 +84,13 @@ agent.py  .env.example  README.md</code></pre>
           <p class="section-kicker">Production</p>
           <h2>nodex run</h2>
           <p>Executes the agent once. Prints the full execution trace and exits.</p>
-          <pre class="signature"><code>nodex run &lt;module&gt;:&lt;instance&gt; [--input JSON] [--debug]</code></pre>
+          <pre class="signature"><code>nodex run &lt;module&gt;:&lt;instance&gt; [--input JSON]</code></pre>
           <table class="reference-table"><tbody>
             <tr><th>&lt;module&gt;:&lt;instance&gt;</th><td>Python module path and the <code>Agent</code> variable name.</td></tr>
             <tr><th>--input JSON</th><td>Initial state as a valid JSON string.</td></tr>
-            <tr><th>--debug</th><td>Enable debug mode on the agent, printing richer failure details.</td></tr>
+            
           </tbody></table>
-          <pre class="code-card"><code>nodex run agent:app --input '{"query":"AI trends"}' --debug</code></pre>
+          <pre class="code-card"><code>nodex run agent:app --input '{"query":"AI trends"}'</code></pre>
         </section>
 
         <!-- ── Target format ── -->
@@ -109,7 +109,7 @@ agent.py  .env.example  README.md</code></pre>
           </p>
           <div class="note">
             <strong>Windows users</strong>
-            <span>Use double quotes for the JSON string on Windows CMD, or single quotes in PowerShell: <code>nodex run agent:app --input '{\"query\":\"hello\"}'</code></span>
+            <span>Use double quotes for the JSON string on Windows CMD (<code>nodex run agent:app --input "{\"query\":\"hello\"}"</code>), or single quotes in PowerShell (<code>nodex run agent:app --input '{"query":"hello"}'</code>).</span>
           </div>
         </section>
 

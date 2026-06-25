@@ -92,6 +92,7 @@ class Agent:
             self.display.print_trace(trace)
             if raise_errors:
                 raise
+            trace.success = False
             return trace
 
         trace = self.tracer.get_trace()

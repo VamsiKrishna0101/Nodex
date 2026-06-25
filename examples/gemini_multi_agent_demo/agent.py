@@ -184,7 +184,7 @@ Return JSON only.""",
 @app.route(
     condition=lambda state: state.get("risk_score", 1) >= 0.65,
     if_true="safety_reviewer",
-    if_false="launch_writer",
+    if_false="qa_reviewer",
 )
 def launch_writer(state):
     data, tokens = _ask_json(

@@ -149,7 +149,7 @@ if trace.success:
     print(f"Done in {trace.total_duration:.2f}s, {trace.total_tokens} tokens")
 else:
     for r in trace.results:
-        if r.status != "ok":
+        if r.status != "success":
             print(f"Failed: {r.node_name} — {r.error}")</code></pre>
         </section>
 
@@ -159,7 +159,7 @@ else:
           <p>One result per executed node, available as <code>trace.results</code>.</p>
           <table class="reference-table"><tbody>
             <tr><th>node_name</th><td>The name of the node function.</td></tr>
-            <tr><th>status</th><td><code>"ok"</code>, <code>"retry"</code>, <code>"failed"</code>, or <code>"skipped"</code>.</td></tr>
+            <tr><th>status</th><td><code>"success"</code>, <code>"failed"</code>, <code>"skipped"</code>, <code>"retrying"</code>, or <code>"cancelled"</code>.</td></tr>
             <tr><th>output</th><td>The dictionary returned by the node function.</td></tr>
             <tr><th>duration</th><td>Wall-clock seconds for this node.</td></tr>
             <tr><th>error</th><td>Exception string if the node failed, otherwise <code>None</code>.</td></tr>
@@ -190,7 +190,7 @@ assert_node_output(research, {"query": "AI trends"}, ["notes"])
 state = make_state({"query": "test", "confidence": 0.9})
 result = test_node(writer, state)</code></pre>
           <table class="reference-table"><tbody>
-            <tr><th>test_node(fn, input)</th><td>Runs a single node function with the given input dict or <code>NodexState</code>. Returns a <code>NodeResult</code>.</td></tr>
+            <tr><th>test_node(fn, input)</th><td>Runs a single node function with the given input dict or <code>NodexState</code>. Returns a <code>NodeTestResult</code>.</td></tr>
             <tr><th>assert_node_output(fn, input, keys)</th><td>Asserts that all <code>keys</code> are present in the node output. Raises <code>AssertionError</code> on failure.</td></tr>
             <tr><th>make_state(dict)</th><td>Creates a <code>NodexState</code> from a plain dictionary, useful when you need direct state control in tests.</td></tr>
           </tbody></table>

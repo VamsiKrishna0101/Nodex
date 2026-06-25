@@ -37,7 +37,7 @@ def research(state):
     )
     return {
         "research_notes": response.content,
-        "_tokens": (esponse.usage_metadata or {}).get("total_tokens", 0),
+        "_tokens": (response.usage_metadata or {}).get("total_tokens", 0),
     }
 
 

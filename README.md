@@ -123,7 +123,7 @@ execution tracing. `app.run()` returns an [`ExecutionTrace`](#executiontrace).
 ### Nodes
 
 ```python
-@app.node(next="writer", retry=2, on_fail="fallback_research", timeout=30.0)
+@app.node(next="writer", retry=2, on_fail="fallback_research")
 def research(state):
     return {"research_results": "data"}
 ```
@@ -136,7 +136,7 @@ dictionary. Internal keys such as `_trace` and `_retry_count` are protected.
 | `next` | `"end"` | Next node name, or `"end"` to finish. |
 | `retry` | `0` | Retry attempts before failure handling. |
 | `on_fail` | `"raise"` | `"raise"`, `"skip"`, or a fallback node name. |
-| `timeout` | `30.0` | Max seconds for the node. Raises `NodexTimeoutError`. |
+| `timeout` | `None` | Optional max seconds for the node. `None` means no Nodex timeout unless you opt in. |
 | `human_review` | `False` | Ask for terminal approval before continuing. |
 
 ### Middleware

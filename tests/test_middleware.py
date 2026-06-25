@@ -96,6 +96,23 @@ class TestMiddlewareEngine:
         with pytest.raises(NodexMiddlewareError, match="middleware post-processing broke"):
             engine.execute(node, state)
 
+    def test_caught_node_error_then_middleware_error_is_wrapped(self):
+        def catches_downstream_then_fails(state, next_node):
+            try:
+                next_node(state)
+            except Exception:
+                pass
+            raise RuntimeError("middleware cleanup failed")
+
+        def broken_node(state):
+            raise ValueError("provider model not found")
+
+        engine = MiddlewareEngine([catches_downstream_then_fails])
+        state = NodexState()
+
+        with pytest.raises(NodexMiddlewareError, match="middleware cleanup failed"):
+            engine.execute(broken_node, state)
+
     def test_add_middleware(self):
         engine = MiddlewareEngine([])
         assert not engine.has_middlewares()
