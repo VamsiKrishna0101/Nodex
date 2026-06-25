@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API reference - Nodex</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../index.html"><span class="brand-mark">nx</span><span>nodex</span></a>
+      <nav class="topnav"><a href="./getting-started.html">Getting started</a><a href="./guide.html">Guide</a><a class="active" href="./api.html">API</a><a href="./migration.html">Migration</a></nav>
+      <div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/nodex">GitHub</a></div>
+    </header>
+    <main class="docs-shell">
+      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Reference</p><a class="active" href="./api.html">API reference</a><a href="./api.html#agent">Agent</a><a href="./api.html#node">app.node()</a><a href="./middleware.html">app.middleware</a><a href="./api.html#route">app.route()</a><a href="./api.html#state">NodexState</a><a href="./cli.html">CLI</a></aside>
+      <div class="doc-content">
+        <section class="doc-section">
+          <p class="section-kicker">API</p>
+          <h2>API reference</h2>
+          <p>The reference is organized around the objects developers import and call directly.</p>
+          <div class="api-list"><a href="#agent">Agent</a><a href="#node">app.node()</a><a href="./middleware.html">app.middleware</a><a href="#route">app.route()</a><a href="#state">NodexState</a><a href="#testing">Testing utilities</a><a href="./cli.html">CLI commands</a></div>
+        </section>
+        <section id="agent" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Class</p><h2>Agent</h2></div>
+          <p>The main entry point for a Nodex graph. Create one agent, register nodes with decorators, then call <code>run()</code>.</p>
+          <pre class="signature"><code>Agent(name: str = "agent", debug: bool = False)</code></pre>
+          <table class="reference-table"><tbody><tr><th>name</th><td>Name shown in terminal output and execution traces.</td></tr><tr><th>debug</th><td>Prints richer failure details when available.</td></tr></tbody></table>
+        </section>
+        <section id="node" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Decorator</p><h2>app.node()</h2></div>
+          <p>Registers a Python function as a graph node. The function receives state and must return a non-empty dictionary.</p>
+          <pre class="signature"><code>@app.node(next="end", retry=0, on_fail="raise", timeout=30.0, human_review=False)</code></pre>
+          <table class="reference-table"><tbody><tr><th>next</th><td>Next node name, or <code>"end"</code> to finish.</td></tr><tr><th>retry</th><td>Number of retry attempts before failure handling.</td></tr><tr><th>on_fail</th><td>Failure behavior. Use <code>"raise"</code> or a fallback node name.</td></tr><tr><th>timeout</th><td>Maximum seconds allowed for the node function.</td></tr><tr><th>human_review</th><td>Prompts for terminal approval before continuing.</td></tr></tbody></table>
+        </section>
+        <section id="route" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Decorator</p><h2>app.route()</h2></div>
+          <p>Adds conditional routing to a node. Use it when the next step depends on state produced by earlier nodes.</p>
+          <pre class="signature"><code>@app.route(condition, if_true="publish", if_false="review")</code></pre>
+        </section>
+        <section id="state" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">State</p><h2>NodexState</h2></div>
+          <p>A small wrapper around user data. It keeps internal execution fields separate from the dictionary your nodes read and update.</p>
+          <table class="reference-table"><tbody><tr><th>get(key, default)</th><td>Read a value from the current state.</td></tr><tr><th>set(key, value)</th><td>Set one state value.</td></tr><tr><th>update(dict)</th><td>Merge multiple values without overwriting internal fields.</td></tr></tbody></table>
+        </section>
+        <section id="testing" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Testing</p><h2>Testing utilities</h2></div>
+          <pre class="code-card"><code>from nodex.testing import test_node
+
+result = test_node(research, {"query": "AI trends"})
+assert result.success</code></pre>
+        </section>
+        <section id="exceptions" class="reference-section">
+          <div class="reference-heading"><p class="section-kicker">Errors</p><h2>Exceptions</h2></div>
+          <table class="reference-table">
+            <tbody>
+              <tr><th>NodexNodeError</th><td>Raised when a node fails after retry and failure handling.</td></tr>
+              <tr><th>NodexStateError</th><td>Raised when a node returns invalid state output.</td></tr>
+              <tr><th>NodexMiddlewareError</th><td>Raised when middleware fails.</td></tr>
+              <tr><th>NodexConfigError</th><td>Raised for invalid app or graph configuration.</td></tr>
+              <tr><th>NodexTimeoutError</th><td>Raised when a node exceeds its timeout.</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+      <aside class="toc"><p class="toc-title">On this page</p><a href="#agent">Agent</a><a href="#node">app.node()</a><a href="#route">app.route()</a><a href="#state">NodexState</a><a href="#testing">Testing</a><a href="#exceptions">Exceptions</a></aside>
+    </main>
+  </body>
+</html>

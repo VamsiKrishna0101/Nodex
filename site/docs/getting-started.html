@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Getting started - Nodex</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../index.html"><span class="brand-mark">nx</span><span>nodex</span></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a class="active" href="./getting-started.html">Getting started</a>
+        <a href="./guide.html">Guide</a>
+        <a href="./api.html">API</a>
+        <a href="./migration.html">Migration</a>
+      </nav>
+      <div class="top-actions">
+        <a class="search-link" href="./api.html">Search docs</a>
+        <a class="version-link" href="./api.html">v0.1.0</a>
+        <a class="github-link" href="https://github.com/VamsiKrishna0101/nodex">GitHub</a>
+      </div>
+    </header>
+
+    <main class="docs-shell" aria-label="Documentation">
+      <aside class="sidebar">
+        <p class="sidebar-title">Documentation</p>
+        <p class="sidebar-group">Getting started</p>
+        <a class="active" href="./getting-started.html">Getting started</a>
+        <a href="./getting-started.html#installing">Installing</a>
+        <a href="./getting-started.html#hello-world">Hello world</a>
+        <p class="sidebar-group">Guides</p>
+        <a href="./guide.html">Guide</a>
+        <a href="./migration.html">Migration from LangGraph</a>
+        <p class="sidebar-group">Reference</p>
+        <a href="./api.html">API reference</a>
+        <a href="./middleware.html">Middleware</a>
+        <a href="./cli.html">CLI</a>
+      </aside>
+
+      <div class="doc-content">
+        <section class="doc-section">
+          <div class="doc-heading">
+            <div>
+              <p class="section-kicker">Getting started</p>
+              <h2>Install Nodex and create an agent</h2>
+            </div>
+            <div class="doc-meta">
+              <span>Python 3.11+</span>
+              <span>LangGraph 0.2+</span>
+            </div>
+          </div>
+          <p>
+            Nodex should feel copy-paste simple. Install the package, scaffold
+            an agent, then run it in dev mode while you edit.
+          </p>
+          <div class="terminal">
+            <div class="terminal-chrome"><span></span><span></span><span></span><p>quickstart</p></div>
+            <pre><code><span class="prompt">$</span> pip install nodex
+<span class="prompt">$</span> nodex new research-agent
+<span class="prompt">$</span> cd research-agent
+<span class="prompt">$</span> nodex dev agent:app --input '{"query":"AI trends"}'</code></pre>
+          </div>
+          <div class="quick-grid">
+            <article><strong>1. Install</strong><span>Get the package and CLI into your Python environment.</span></article>
+            <article><strong>2. Scaffold</strong><span>Create an agent file, env file, and runnable project.</span></article>
+            <article><strong>3. Run</strong><span>Use watch mode while building and `run` for one-shot execution.</span></article>
+          </div>
+        </section>
+
+        <section id="installing" class="doc-section two-column">
+          <div>
+            <p class="section-kicker">Install</p>
+            <h2>Python 3.11 and one package</h2>
+            <p>
+              Start from a virtual environment, install Nodex, then add any LLM
+              provider package your agent needs.
+            </p>
+            <div class="note">
+              <strong>Tip</strong>
+              <span>Provider packages stay separate so Nodex does not force one model vendor.</span>
+            </div>
+          </div>
+          <div class="terminal compact">
+            <div class="terminal-chrome"><span></span><span></span><span></span><p>install</p></div>
+            <pre><code><span class="prompt">$</span> python --version
+Python 3.11+
+
+<span class="prompt">$</span> pip install nodex</code></pre>
+          </div>
+        </section>
+
+        <section id="hello-world" class="doc-section">
+          <p class="section-kicker">Hello world</p>
+          <h2>The smallest useful Nodex agent</h2>
+          <pre class="code-card"><code>from nodex import Agent
+
+app = Agent(name="first-agent")
+
+@app.node(next="writer", retry=2)
+def research(state):
+    return {"notes": f"Research: {state.get('query')}"}
+
+@app.node(next="end")
+def writer(state):
+    return {"final": state.get("notes").upper()}
+
+app.run({"query": "LangGraph boilerplate"})</code></pre>
+        </section>
+
+        <section id="troubleshooting" class="doc-section">
+          <p class="section-kicker">Troubleshooting</p>
+          <h2>Common first-run issues</h2>
+          <table class="reference-table">
+            <tbody>
+              <tr><th>No nodes registered</th><td>Create an `Agent` and decorate at least one function with `@app.node` before calling `app.run()`.</td></tr>
+              <tr><th>Node returned empty output</th><td>Every node must return a non-empty dictionary.</td></tr>
+              <tr><th>Invalid JSON input</th><td>CLI `--input` must be valid JSON, for example `--input '{"query":"hello"}'`.</td></tr>
+              <tr><th>Provider key missing</th><td>Nodex does not choose an LLM provider. Set the API key required by your model package.</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <aside class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <a href="./getting-started.html">Quickstart</a>
+        <a href="./getting-started.html#installing">Installing</a>
+        <a href="./getting-started.html#hello-world">Hello world</a>
+        <a href="./getting-started.html#troubleshooting">Troubleshooting</a>
+      </aside>
+    </main>
+  </body>
+</html>

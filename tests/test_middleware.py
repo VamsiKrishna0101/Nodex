@@ -1,0 +1,80 @@
+import pytest
+
+from nodex.exceptions import NodexMiddlewareError
+from nodex.middleware import MiddlewareEngine
+from nodex.state import NodexState
+
+
+class TestMiddlewareEngine:
+    def test_no_middleware_runs_node_directly(self):
+        engine = MiddlewareEngine([])
+        state = NodexState()
+        state.update({"query": "test"})
+
+        def node(s):
+            s.set("result", "done")
+            return s
+
+        result = engine.execute(node, state)
+        assert result.get("result") == "done"
+
+    def test_middleware_runs_before_node(self):
+        call_order = []
+
+        def logger(state, next_node):
+            call_order.append("middleware")
+            return next_node(state)
+
+        def node(state):
+            call_order.append("node")
+            return state
+
+        engine = MiddlewareEngine([logger])
+        state = NodexState()
+        engine.execute(node, state)
+
+        assert call_order == ["middleware", "node"]
+
+    def test_multiple_middlewares_run_in_order(self):
+        call_order = []
+
+        def first(state, next_node):
+            call_order.append("first")
+            return next_node(state)
+
+        def second(state, next_node):
+            call_order.append("second")
+            return next_node(state)
+
+        def node(state):
+            call_order.append("node")
+            return state
+
+        engine = MiddlewareEngine([first, second])
+        state = NodexState()
+        engine.execute(node, state)
+
+        assert call_order == ["first", "second", "node"]
+
+    def test_middleware_error_raises_nodex_middleware_error(self):
+        def broken_middleware(state, next_node):
+            raise ValueError("middleware broke")
+
+        def node(state):
+            return state
+
+        engine = MiddlewareEngine([broken_middleware])
+        state = NodexState()
+
+        with pytest.raises(NodexMiddlewareError):
+            engine.execute(node, state)
+
+    def test_add_middleware(self):
+        engine = MiddlewareEngine([])
+        assert not engine.has_middlewares()
+
+        def logger(state, next_node):
+            return next_node(state)
+
+        engine.add(logger)
+        assert engine.has_middlewares()

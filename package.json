@@ -1,0 +1,9 @@
+{
+  "name": "nodex-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "python -m http.server 4173 --directory site",
+    "site": "python -m http.server 4173 --directory site"
+  }
+}

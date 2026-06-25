@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Middleware - Nodex</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../index.html"><span class="brand-mark">nx</span><span>nodex</span></a>
+      <nav class="topnav"><a href="./getting-started.html">Getting started</a><a class="active" href="./guide.html">Guide</a><a href="./api.html">API</a><a href="./migration.html">Migration</a></nav>
+      <div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/nodex">GitHub</a></div>
+    </header>
+    <main class="docs-shell">
+      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Guides</p><a href="./guide.html">Guide</a><a class="active" href="./middleware.html">Middleware</a><a href="./migration.html">Migration from LangGraph</a><p class="sidebar-group">Reference</p><a href="./api.html">API reference</a><a href="./cli.html">CLI</a></aside>
+      <div class="doc-content">
+        <section class="doc-section">
+          <p class="section-kicker">Middleware</p>
+          <h2>Wrap every node with one reusable chain</h2>
+          <p>Middleware is the right place for logging, auth checks, metrics, tracing context, and shared policy.</p>
+          <pre class="code-card"><code>@app.middleware
+def logger(state, next_node):
+    print(f"running {state._current_node}")
+    return next_node(state)</code></pre>
+        </section>
+        <section id="order" class="reference-section">
+          <p class="section-kicker">Order</p>
+          <h2>Middleware runs in registration order</h2>
+          <p>The first registered middleware wraps the second, and the final callable is the node itself.</p>
+        </section>
+
+        <section id="errors" class="reference-section">
+          <p class="section-kicker">Errors</p>
+          <h2>Middleware errors are attributed</h2>
+          <p>If middleware raises, Nodex wraps it in `NodexMiddlewareError` with the middleware function name.</p>
+        </section>
+
+        <section id="auth" class="reference-section">
+          <p class="section-kicker">Example</p>
+          <h2>Auth check middleware</h2>
+          <pre class="code-card"><code>from nodex import NodexAuthError
+
+@app.middleware
+def auth_check(state, next_node):
+    if not state.get("api_key"):
+        raise NodexAuthError("Missing api_key")
+    return next_node(state)</code></pre>
+        </section>
+      </div>
+      <aside class="toc"><p class="toc-title">On this page</p><a href="./middleware.html">Middleware</a><a href="./middleware.html#order">Order</a><a href="./middleware.html#errors">Errors</a><a href="./middleware.html#auth">Auth example</a></aside>
+    </main>
+  </body>
+</html>

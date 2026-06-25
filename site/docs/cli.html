@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CLI - Nodex</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="topbar"><a class="brand" href="../index.html"><span class="brand-mark">nx</span><span>nodex</span></a><nav class="topnav"><a href="./getting-started.html">Getting started</a><a href="./guide.html">Guide</a><a class="active" href="./api.html">API</a><a href="./migration.html">Migration</a></nav><div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/nodex">GitHub</a></div></header>
+    <main class="docs-shell">
+      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Reference</p><a href="./api.html">API reference</a><a class="active" href="./cli.html">CLI</a></aside>
+      <div class="doc-content">
+        <section class="doc-section">
+          <p class="section-kicker">CLI</p>
+          <h2>CLI commands</h2>
+          <p>The CLI mirrors the simple Express flow: scaffold, develop, run.</p>
+          <table class="reference-table"><tbody><tr><th>nodex new my-agent</th><td>Create a starter agent project.</td></tr><tr><th>nodex dev agent:app</th><td>Run an agent in watch mode while editing.</td></tr><tr><th>nodex run agent:app</th><td>Run an agent once for production-style execution.</td></tr></tbody></table>
+          <div class="terminal compact"><div class="terminal-chrome"><span></span><span></span><span></span><p>cli</p></div><pre><code><span class="prompt">$</span> nodex new my-agent
+<span class="prompt">$</span> cd my-agent
+<span class="prompt">$</span> nodex dev agent:app</code></pre></div>
+        </section>
+        <section id="input" class="reference-section">
+          <p class="section-kicker">Input</p>
+          <h2>Pass initial state as JSON</h2>
+          <pre class="code-card"><code>nodex run agent:app --input '{"query":"hello"}'</code></pre>
+          <p>The target format is `module:instance`, such as `agent:app`.</p>
+        </section>
+      </div>
+      <aside class="toc"><p class="toc-title">On this page</p><a href="./cli.html">CLI commands</a><a href="./cli.html#input">Input</a></aside>
+    </main>
+  </body>
+</html>

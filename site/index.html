@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Nodex is the Express.js-style developer experience for LangGraph agents."
+    />
+    <title>Nodex - Express.js for LangGraph agents</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="Nodex home">
+        <span class="brand-mark">nx</span>
+        <span>nodex</span>
+      </a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="./docs/getting-started.html">Getting started</a>
+        <a href="./docs/guide.html">Guide</a>
+        <a href="./docs/api.html">API</a>
+        <a href="./docs/migration.html">Migration</a>
+      </nav>
+      <div class="top-actions">
+        <a class="search-link" href="./docs/api.html">Search docs</a>
+        <a class="version-link" href="./docs/api.html">v0.1.0</a>
+        <a class="github-link" href="https://github.com/VamsiKrishna0101/nodex">GitHub</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow">Version 0.1.0</p>
+            <h1>Nodex</h1>
+            <p class="lede">
+              Fast, minimal, decorator-first LangGraph agents. Nodex gives Python
+              agent builders the same kind of obvious starting path that Express
+              gave Node developers.
+            </p>
+            <div class="hero-actions">
+              <a class="button primary" href="./docs/getting-started.html">Get started</a>
+              <a class="button secondary" href="./docs/api.html">API reference</a>
+            </div>
+          </div>
+
+          <div class="hero-code" aria-label="Nodex quick example">
+            <div class="terminal small">
+              <div class="terminal-chrome">
+                <span></span>
+                <span></span>
+                <span></span>
+                <p>terminal</p>
+              </div>
+              <pre><code><span class="prompt">$</span> pip install nodex
+<span class="prompt">$</span> nodex new my-agent
+<span class="prompt">$</span> cd my-agent
+<span class="prompt">$</span> nodex dev agent:app</code></pre>
+            </div>
+            <pre class="code-card"><code>from nodex import Agent
+
+app = Agent(name="hello-agent")
+
+@app.node(next="end")
+def start(state):
+    return {"message": "hello from nodex"}
+
+app.run()</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="home-band">
+        <div class="home-grid">
+          <a href="./docs/getting-started.html">
+            <span>Start</span>
+            <strong>Install, scaffold, and run your first agent.</strong>
+          </a>
+          <a href="./docs/guide.html">
+            <span>Guide</span>
+            <strong>Learn nodes, state, middleware, retries, and tracing.</strong>
+          </a>
+          <a href="./docs/migration.html">
+            <span>Migration</span>
+            <strong>Move from LangGraph boilerplate to Nodex decorators.</strong>
+          </a>
+          <a href="./docs/api.html">
+            <span>Reference</span>
+            <strong>Read the Agent, decorator, state, testing, and CLI APIs.</strong>
+          </a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

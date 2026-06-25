@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Migration from LangGraph - Nodex</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../index.html"><span class="brand-mark">nx</span><span>nodex</span></a>
+      <nav class="topnav"><a href="./getting-started.html">Getting started</a><a href="./guide.html">Guide</a><a href="./api.html">API</a><a class="active" href="./migration.html">Migration</a></nav>
+      <div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/nodex">GitHub</a></div>
+    </header>
+    <main class="docs-shell">
+      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Getting started</p><a href="./getting-started.html">Getting started</a><p class="sidebar-group">Guides</p><a href="./guide.html">Guide</a><a class="active" href="./migration.html">Migration from LangGraph</a><p class="sidebar-group">Reference</p><a href="./api.html">API reference</a></aside>
+      <div class="doc-content">
+        <section class="doc-section compare">
+          <p class="section-kicker">Migration</p>
+          <h2>From LangGraph boilerplate to Nodex</h2>
+          <p>Keep the graph model, remove repetitive wiring, and add a cleaner execution trace.</p>
+          <div class="compare-grid">
+            <pre class="code-card muted"><code>graph = StateGraph(AgentState)
+graph.add_node("research", research)
+graph.add_node("writer", writer)
+graph.add_edge(START, "research")
+graph.add_edge("research", "writer")
+graph.add_edge("writer", END)
+app = graph.compile()</code></pre>
+            <pre class="code-card"><code>app = Agent()
+
+@app.node(next="writer")
+def research(state):
+    ...
+
+@app.node(next="end")
+def writer(state):
+    ...</code></pre>
+          </div>
+        </section>
+        <section id="checklist" class="doc-section">
+          <p class="section-kicker">Checklist</p>
+          <h2>Migration checklist</h2>
+          <table class="reference-table">
+            <tbody>
+              <tr><th>Nodes</th><td>Move each LangGraph node function under `@app.node`.</td></tr>
+              <tr><th>Edges</th><td>Replace direct edges with `next="node_name"`.</td></tr>
+              <tr><th>END</th><td>Use `next="end"` for terminal nodes.</td></tr>
+              <tr><th>Conditional edges</th><td>Use `@app.route(condition, if_true, if_false)`.</td></tr>
+              <tr><th>Tests</th><td>Test one full graph path and key nodes in isolation.</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+      <aside class="toc"><p class="toc-title">On this page</p><a href="./migration.html">Migration</a><a href="./migration.html#checklist">Checklist</a></aside>
+    </main>
+  </body>
+</html>
