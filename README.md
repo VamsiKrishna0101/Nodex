@@ -30,7 +30,10 @@ Nodex gives that workflow a smaller surface:
 
 [Watch the Nodex demo video]
 
-https://github.com/user-attachments/assets/4cea47c7-7811-4407-ab22-bf92af7b4206
+
+
+https://github.com/user-attachments/assets/9f6f2bf8-252e-4c02-a92f-62d9c77579a9
+
 
 ## Install
 
