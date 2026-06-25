@@ -61,7 +61,7 @@ class TestNodeDecorator:
         assert config.next == "end"
         assert config.retry == 0
         assert config.on_fail == "raise"
-        assert config.timeout == 30.0
+        assert config.timeout is None
 
     def test_node_updates_trace(self):
         @node(next="end")
@@ -71,6 +71,21 @@ class TestNodeDecorator:
         state = NodexState()
         result_state = research(state)
         assert "research" in result_state._trace
+
+    def test_node_timeout_is_opt_in(self, monkeypatch):
+        def fail_if_used(*args, **kwargs):
+            raise AssertionError("ThreadPoolExecutor should not run without timeout")
+
+        monkeypatch.setattr("nodex.decorators.ThreadPoolExecutor", fail_if_used)
+
+        @node(next="end")
+        def research(state: NodexState):
+            return {"result": "provider error path is not masked"}
+
+        state = NodexState()
+        result_state = research(state)
+
+        assert result_state.get("result") == "provider error path is not masked"
 
     def test_route_registers_when_applied_after_node(self):
         @route(condition=lambda state: True, if_true="publish", if_false="review")

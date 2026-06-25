@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Nodex middleware guide: wrap every node with logging, auth, metrics, and chained middleware." />
     <title>Middleware - Nodex</title>
     <link rel="stylesheet" href="../styles.css" />
   </head>
@@ -13,42 +14,183 @@
       <div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a></div>
     </header>
     <main class="docs-shell">
-      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Guides</p><a href="./guide.html">Guide</a><a class="active" href="./middleware.html">Middleware</a><a href="./migration.html">Migration from LangGraph</a><p class="sidebar-group">Reference</p><a href="./api.html">API reference</a><a href="./cli.html">CLI</a></aside>
+      <aside class="sidebar">
+        <p class="sidebar-title">Documentation</p>
+        <p class="sidebar-group">Guides</p>
+        <a href="./guide.html">Guide</a>
+        <a class="active" href="./middleware.html">Middleware</a>
+        <a href="./migration.html">Migration from LangGraph</a>
+        <p class="sidebar-group">Reference</p>
+        <a href="./api.html">API reference</a>
+        <a href="./cli.html">CLI</a>
+      </aside>
       <div class="doc-content">
+
+        <!-- ── Overview ── -->
         <section class="doc-section">
           <p class="section-kicker">Middleware</p>
           <h2>Wrap every node with one reusable chain</h2>
-          <p>Middleware is the right place for logging, auth checks, metrics, tracing context, and shared policy.</p>
+          <p>
+            Middleware is the right place for logging, auth checks, metrics,
+            tracing context, and shared policy. Register it once — it runs around
+            every node execution automatically.
+          </p>
           <pre class="code-card"><code>@app.middleware
 def logger(state, next_node):
-    print(f"running {state._current_node}")
-    return next_node(state)</code></pre>
+    print(f"[start] {state._current_node}")
+    result = next_node(state)
+    print(f"[done]  {state._current_node}")
+    return result</code></pre>
+          <p>
+            Each middleware receives the current <code>NodexState</code> and a
+            <code>next_node</code> callable. You must call <code>next_node(state)</code>
+            to continue execution and return its result.
+          </p>
         </section>
+
+        <!-- ── Order ── -->
         <section id="order" class="reference-section">
           <p class="section-kicker">Order</p>
           <h2>Middleware runs in registration order</h2>
-          <p>The first registered middleware wraps the second, and the final callable is the node itself.</p>
+          <p>
+            The first registered middleware wraps the second, and the final
+            callable is the node itself. This is the same onion-model used by
+            Express, Koa, and ASGI middleware stacks.
+          </p>
+          <pre class="code-card"><code>@app.middleware
+def first(state, next_node):
+    print("first: before")
+    result = next_node(state)   # calls second, which calls the node
+    print("first: after")
+    return result
+
+@app.middleware
+def second(state, next_node):
+    print("second: before")
+    result = next_node(state)   # calls the actual node
+    print("second: after")
+    return result
+
+# Output order:
+# first: before
+# second: before
+# [node runs]
+# second: after
+# first: after</code></pre>
         </section>
 
+        <!-- ── Errors ── -->
         <section id="errors" class="reference-section">
           <p class="section-kicker">Errors</p>
           <h2>Middleware errors are attributed</h2>
-          <p>If middleware raises, Nodex wraps it in `NodexMiddlewareError` with the middleware function name.</p>
+          <p>
+            If middleware raises, Nodex wraps it in <code>NodexMiddlewareError</code>
+            with the middleware function name included in the message so you can
+            identify which layer failed.
+          </p>
+          <pre class="code-card"><code>from nodex import NodexMiddlewareError
+
+try:
+    trace = app.run({"query": "test"})
+except NodexMiddlewareError as exc:
+    print(exc)  # "Middleware 'auth_check' failed: Missing api_key"</code></pre>
         </section>
 
+        <!-- ── Auth ── -->
         <section id="auth" class="reference-section">
           <p class="section-kicker">Example</p>
           <h2>Auth check middleware</h2>
+          <p>Reject execution early if a required credential is missing.</p>
           <pre class="code-card"><code>from nodex import NodexAuthError
 
 @app.middleware
 def auth_check(state, next_node):
     if not state.get("api_key"):
-        raise NodexAuthError("Missing api_key")
+        raise NodexAuthError("Missing api_key in state")
     return next_node(state)</code></pre>
         </section>
+
+        <!-- ── Metrics ── -->
+        <section id="metrics" class="reference-section">
+          <p class="section-kicker">Example</p>
+          <h2>Metrics and timing middleware</h2>
+          <p>
+            Measure per-node latency or record custom counters without touching
+            individual node functions.
+          </p>
+          <pre class="code-card"><code>import time
+
+@app.middleware
+def metrics(state, next_node):
+    node = state._current_node
+    start = time.perf_counter()
+    result = next_node(state)
+    elapsed = time.perf_counter() - start
+    # Send to your monitoring system:
+    record_metric(f"nodex.node.{node}.duration_ms", elapsed * 1000)
+    return result</code></pre>
+        </section>
+
+        <!-- ── Retry-aware ── -->
+        <section id="retry-aware" class="reference-section">
+          <p class="section-kicker">Example</p>
+          <h2>Retry-aware middleware</h2>
+          <p>
+            Access <code>state._retry_count</code> to change behavior on retried
+            executions — for example, switching to a cheaper model on a second attempt.
+          </p>
+          <pre class="code-card"><code>@app.middleware
+def retry_logger(state, next_node):
+    if state._retry_count > 0:
+        print(f"Retry #{state._retry_count} for {state._current_node}")
+    return next_node(state)</code></pre>
+          <div class="note">
+            <strong>Read-only internal fields</strong>
+            <span>You may read <code>state._current_node</code> and <code>state._retry_count</code> in middleware for observability, but do not modify them.</span>
+          </div>
+        </section>
+
       </div>
-      <aside class="toc"><p class="toc-title">On this page</p><a href="./middleware.html">Middleware</a><a href="./middleware.html#order">Order</a><a href="./middleware.html#errors">Errors</a><a href="./middleware.html#auth">Auth example</a></aside>
+      <aside class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <a href="./middleware.html">Middleware</a>
+        <a href="./middleware.html#order">Order</a>
+        <a href="./middleware.html#errors">Errors</a>
+        <a href="./middleware.html#auth">Auth example</a>
+        <a href="./middleware.html#metrics">Metrics example</a>
+        <a href="./middleware.html#retry-aware">Retry-aware</a>
+      </aside>
     </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand"><span class="brand-mark">nx</span><span>nodex</span></div>
+          <p class="footer-copy">The Express.js-style developer experience for LangGraph agents. MIT licensed.</p>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Docs</h4>
+          <a href="./getting-started.html">Getting started</a>
+          <a href="./guide.html">Guide</a>
+          <a href="./middleware.html">Middleware</a>
+          <a href="./migration.html">Migration</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Reference</h4>
+          <a href="./api.html">API reference</a>
+          <a href="./cli.html">CLI</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Project</h4>
+          <a href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CHANGELOG.md">Changelog</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CONTRIBUTING.md">Contributing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Released under the MIT License.</span>
+        <span>Built with LangGraph under the hood.</span>
+      </div>
+    </footer>
   </body>
 </html>

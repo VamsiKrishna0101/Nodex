@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Migrate from LangGraph boilerplate to Nodex decorators. Side-by-side comparison, migration checklist, and what you no longer need to write." />
     <title>Migration from LangGraph - Nodex</title>
     <link rel="stylesheet" href="../styles.css" />
   </head>
@@ -13,46 +14,161 @@
       <div class="top-actions"><a class="search-link" href="./api.html">Search docs</a><a class="version-link" href="./api.html">v0.1.0</a><a class="github-link" href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a></div>
     </header>
     <main class="docs-shell">
-      <aside class="sidebar"><p class="sidebar-title">Documentation</p><p class="sidebar-group">Getting started</p><a href="./getting-started.html">Getting started</a><p class="sidebar-group">Guides</p><a href="./guide.html">Guide</a><a class="active" href="./migration.html">Migration from LangGraph</a><p class="sidebar-group">Reference</p><a href="./api.html">API reference</a></aside>
+      <aside class="sidebar">
+        <p class="sidebar-title">Documentation</p>
+        <p class="sidebar-group">Getting started</p>
+        <a href="./getting-started.html">Getting started</a>
+        <p class="sidebar-group">Guides</p>
+        <a href="./guide.html">Guide</a>
+        <a class="active" href="./migration.html">Migration from LangGraph</a>
+        <p class="sidebar-group">Reference</p>
+        <a href="./api.html">API reference</a>
+        <a href="./cli.html">CLI</a>
+      </aside>
       <div class="doc-content">
+
+        <!-- ── Side-by-side ── -->
         <section class="doc-section compare">
           <p class="section-kicker">Migration</p>
           <h2>From LangGraph boilerplate to Nodex</h2>
-          <p>Keep the graph model, remove repetitive wiring, and add a cleaner execution trace.</p>
+          <p>
+            Keep the graph model, remove repetitive wiring, and get a cleaner
+            execution trace automatically. The two code blocks below show the same
+            two-node graph written in raw LangGraph and in Nodex.
+          </p>
           <div class="compare-grid">
-            <pre class="code-card muted"><code>graph = StateGraph(AgentState)
+            <div>
+              <p style="margin-bottom:8px;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;">LangGraph (before)</p>
+              <pre class="code-card muted"><code>from langgraph.graph import END, START, StateGraph
+
+def research(state):
+    return {"notes": state["query"]}
+
+def writer(state):
+    return {"final": state["notes"].upper()}
+
+graph = StateGraph(dict)
 graph.add_node("research", research)
 graph.add_node("writer", writer)
 graph.add_edge(START, "research")
 graph.add_edge("research", "writer")
 graph.add_edge("writer", END)
-app = graph.compile()</code></pre>
-            <pre class="code-card"><code>app = Agent()
+app = graph.compile()
+app.invoke({"query": "LangGraph"})</code></pre>
+            </div>
+            <div>
+              <p style="margin-bottom:8px;font-size:13px;font-weight:700;color:var(--accent-strong);text-transform:uppercase;">Nodex (after)</p>
+              <pre class="code-card"><code>from nodex import Agent
+
+app = Agent()
 
 @app.node(next="writer")
 def research(state):
-    ...
+    return {"notes": state.get("query")}
 
 @app.node(next="end")
 def writer(state):
-    ...</code></pre>
+    return {"final": state.get("notes").upper()}
+
+app.run({"query": "LangGraph"})</code></pre>
+            </div>
           </div>
         </section>
+
+        <!-- ── What you no longer need ── -->
+        <section id="drop" class="doc-section">
+          <p class="section-kicker">Removed ceremony</p>
+          <h2>What you no longer need to write</h2>
+          <p>
+            Nodex handles this wiring internally. You can delete it from your
+            existing agent code.
+          </p>
+          <table class="reference-table"><tbody>
+            <tr><th>StateGraph(dict)</th><td>Nodex creates the underlying LangGraph graph automatically when you call <code>app.run()</code>.</td></tr>
+            <tr><th>graph.add_node(name, fn)</th><td>Replaced by <code>@app.node()</code>. The function name becomes the node name.</td></tr>
+            <tr><th>graph.add_edge(A, B)</th><td>Replaced by <code>next="node_name"</code> on the decorator.</td></tr>
+            <tr><th>graph.add_edge(START, first)</th><td>Nodex infers the first node automatically from registration order.</td></tr>
+            <tr><th>graph.add_edge(last, END)</th><td>Replaced by <code>next="end"</code> on the last node.</td></tr>
+            <tr><th>graph.compile()</th><td>Called automatically inside <code>app.run()</code>.</td></tr>
+            <tr><th>Custom retry loops</th><td>Replaced by <code>retry=N</code> and <code>on_fail="node_name"</code> on <code>@app.node()</code>.</td></tr>
+          </tbody></table>
+        </section>
+
+        <!-- ── Checklist ── -->
         <section id="checklist" class="doc-section">
           <p class="section-kicker">Checklist</p>
           <h2>Migration checklist</h2>
           <table class="reference-table">
             <tbody>
-              <tr><th>Nodes</th><td>Move each LangGraph node function under `@app.node`.</td></tr>
-              <tr><th>Edges</th><td>Replace direct edges with `next="node_name"`.</td></tr>
-              <tr><th>END</th><td>Use `next="end"` for terminal nodes.</td></tr>
-              <tr><th>Conditional edges</th><td>Use `@app.route(condition, if_true, if_false)`.</td></tr>
-              <tr><th>Tests</th><td>Test one full graph path and key nodes in isolation.</td></tr>
+              <tr><th>Nodes</th><td>Move each LangGraph node function under <code>@app.node</code>.</td></tr>
+              <tr><th>Edges</th><td>Replace direct edges with <code>next="node_name"</code>.</td></tr>
+              <tr><th>END</th><td>Use <code>next="end"</code> for terminal nodes.</td></tr>
+              <tr><th>Conditional edges</th><td>Use <code>@app.route(condition, if_true, if_false)</code>.</td></tr>
+              <tr><th>State reads</th><td>Replace <code>state["key"]</code> with <code>state.get("key")</code>.</td></tr>
+              <tr><th>Retries</th><td>Move retry logic from try/except wrappers to <code>retry=N, on_fail=</code> on the decorator.</td></tr>
+              <tr><th>Tests</th><td>Test one full graph path and key nodes in isolation with <code>test_node()</code>.</td></tr>
             </tbody>
           </table>
         </section>
+
+        <!-- ── Advanced LangGraph ── -->
+        <section id="advanced" class="reference-section">
+          <p class="section-kicker">Escape hatch</p>
+          <h2>Still need raw LangGraph?</h2>
+          <p>
+            Nodex is a layer, not a lock-in. If you need advanced LangGraph
+            features — subgraphs, streaming, checkpointers — you can still use
+            them directly. Nodex compiles down to a standard LangGraph graph,
+            so you can drop back to the LangGraph API for anything not covered
+            by Nodex decorators.
+          </p>
+          <p>
+            The
+            <a href="https://langchain-ai.github.io/langgraph/">LangGraph documentation</a>
+            covers advanced features like streaming, persistence, and human-in-the-loop
+            at the framework level.
+          </p>
+        </section>
+
       </div>
-      <aside class="toc"><p class="toc-title">On this page</p><a href="./migration.html">Migration</a><a href="./migration.html#checklist">Checklist</a></aside>
+      <aside class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <a href="./migration.html">Migration</a>
+        <a href="./migration.html#drop">Removed ceremony</a>
+        <a href="./migration.html#checklist">Checklist</a>
+        <a href="./migration.html#advanced">Advanced LangGraph</a>
+      </aside>
     </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand"><span class="brand-mark">nx</span><span>nodex</span></div>
+          <p class="footer-copy">The Express.js-style developer experience for LangGraph agents. MIT licensed.</p>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Docs</h4>
+          <a href="./getting-started.html">Getting started</a>
+          <a href="./guide.html">Guide</a>
+          <a href="./middleware.html">Middleware</a>
+          <a href="./migration.html">Migration</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Reference</h4>
+          <a href="./api.html">API reference</a>
+          <a href="./cli.html">CLI</a>
+        </div>
+        <div class="footer-nav-group">
+          <h4>Project</h4>
+          <a href="https://github.com/VamsiKrishna0101/Nodex">GitHub</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CHANGELOG.md">Changelog</a>
+          <a href="https://github.com/VamsiKrishna0101/Nodex/blob/main/CONTRIBUTING.md">Contributing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Released under the MIT License.</span>
+        <span>Built with LangGraph under the hood.</span>
+      </div>
+    </footer>
   </body>
 </html>

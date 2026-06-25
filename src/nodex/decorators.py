@@ -14,7 +14,7 @@ class NodeConfig:
     next: str = "end"
     retry: int = 0
     on_fail: str = "raise"
-    timeout: float = 30.0
+    timeout: float | None = None
     human_review: bool = False
     middlewares: list = field(default_factory=list)
 
@@ -29,7 +29,7 @@ def node(
     next: str = "end",
     retry: int = 0,
     on_fail: str = "raise",
-    timeout: float = 30.0,
+    timeout: float | None = None,
     human_review: bool = False,
 ):
     config = NodeConfig(
