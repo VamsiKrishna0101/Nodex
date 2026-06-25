@@ -57,6 +57,14 @@ class NodexState:
             if k not in self._INTERNAL_KEYS:
                 self.data[k] = v
 
+    def to_graph_state(self) -> dict:
+        """Return state shaped for LangGraph, including Nodex internals."""
+        graph_state = dict(self.data)
+        graph_state["_current_node"] = self._current_node
+        graph_state["_trace"] = list(self._trace)
+        graph_state["_retry_count"] = self._retry_count
+        return graph_state
+
 
 class StateManager:
     def __init__(self):

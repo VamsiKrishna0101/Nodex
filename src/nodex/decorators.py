@@ -88,7 +88,16 @@ def node(
                     state_manager.validate(func.__name__, output)
                     state_manager.infer_fields(func.__name__, output)
                     nodex_state = state_manager.merge(nodex_state, output)
-                    nodex_state._current_node = config.next
+
+                    route_config = getattr(func, "_nodex_route", None)
+                    if route_config:
+                        if route_config["condition"](nodex_state):
+                            nodex_state._current_node = route_config["if_true"]
+                        else:
+                            nodex_state._current_node = route_config["if_false"]
+                    else:
+                        nodex_state._current_node = config.next
+
                     nodex_state._trace.append(func.__name__)
 
                     # --- Human-in-the-loop ---
@@ -108,7 +117,7 @@ def node(
                         if display:
                             display.print_node_result(result)
 
-                    return nodex_state if _called_with_state else nodex_state.data
+                    return nodex_state if _called_with_state else nodex_state.to_graph_state()
 
                 except Exception as e:
                     if error_handler:
@@ -124,11 +133,11 @@ def node(
                             attempts = nodex_state._retry_count
                             continue
                         else:
-                            return nodex_state if _called_with_state else nodex_state.data
+                            return nodex_state if _called_with_state else nodex_state.to_graph_state()
                     else:
                         raise e
 
-            return nodex_state if _called_with_state else nodex_state.data
+            return nodex_state if _called_with_state else nodex_state.to_graph_state()
 
         registered = {
             "func": wrapper,

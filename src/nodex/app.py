@@ -82,7 +82,7 @@ class Agent:
         compiled_graph = build_graph(self._entry_node)
 
         try:
-            compiled_graph.invoke(state.data)
+            compiled_graph.invoke(state.to_graph_state())
         except Exception:
             trace = self.tracer.get_trace()
             self.display.print_trace(trace)

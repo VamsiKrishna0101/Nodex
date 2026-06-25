@@ -80,3 +80,54 @@ class TestAgent:
         app.run()
 
         assert calls == ["middleware", "node"]
+
+    def test_middleware_receives_current_node_and_trace(self):
+        app = Agent()
+        seen = []
+
+        @app.middleware
+        def audit(state, next_node):
+            seen.append((state._current_node, list(state._trace)))
+            return next_node(state)
+
+        @app.node(next="writer")
+        def start(state):
+            return {"message": "hello"}
+
+        @app.node(next="end")
+        def writer(state):
+            return {"final": state.get("message")}
+
+        app.run()
+
+        assert seen == [("start", []), ("writer", ["start"])]
+
+    def test_middleware_receives_routed_current_node(self):
+        app = Agent()
+        seen = []
+
+        @app.middleware
+        def audit(state, next_node):
+            seen.append(state._current_node)
+            return next_node(state)
+
+        @app.node()
+        @app.route(
+            condition=lambda state: state.get("confidence", 0) > 0.5,
+            if_true="publish",
+            if_false="review",
+        )
+        def draft(state):
+            return {"confidence": 0.9}
+
+        @app.node(next="end")
+        def publish(state):
+            return {"status": "published"}
+
+        @app.node(next="end")
+        def review(state):
+            return {"status": "review"}
+
+        app.run()
+
+        assert seen == ["draft", "publish"]
